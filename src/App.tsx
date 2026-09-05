@@ -67,7 +67,9 @@ export default function App() {
     return unsubscribe;
   }, []);
 
-  // Background medicine dose reminder alarm check at the time set by doctor
+
+
+// Background medicine dose reminder alarm check at the time set by doctor
   useEffect(() => {
     const triggeredAlarms = new Set<string>();
 
@@ -80,40 +82,45 @@ export default function App() {
       const h12Str = String(h12).padStart(2, '0');
       const ampm = isPM ? 'PM' : 'AM';
 
-      // Support both 24hr format "14:30" and 12hr format "02:30 PM"
       const format24 = `${String(currentH).padStart(2, '0')}:${currentM}`;
       const format12 = `${h12Str}:${currentM} ${ampm}`;
 
       prescriptions.forEach((rx) => {
         rx.medicines.forEach((med) => {
-          if (!med.time) return;
-          const cleanMedTime = med.time.trim().toUpperCase();
+          if (!med.times || !Array.isArray(med.times)) return;
 
-          if (
-            (cleanMedTime === format24 || cleanMedTime === format12) &&
-            !triggeredAlarms.has(`${rx.id}-${med.id}-${format24}`)
-          ) {
-            const slots = [];
-            if (med.dosageSlots?.breakfast) slots.push('Breakfast');
-            if (med.dosageSlots?.lunch) slots.push('Lunch');
-            if (med.dosageSlots?.dinner) slots.push('Dinner');
-            const doseLabel = slots.join('/') || '1 Dose';
+          med.times.forEach((t) => {
+            const cleanMedTime = t.trim().toUpperCase();
+            const alarmKey = `${rx.id}-${med.id}-${cleanMedTime}`;
 
-            sendMedicineAlarmNotification(
-              med.name,
-              doseLabel,
-              med.timing === 'before' ? 'Before food' : 'After food',
-              med.description
-            );
+            if (
+              (cleanMedTime === format24 || cleanMedTime === format12) &&
+              !triggeredAlarms.has(alarmKey)
+            ) {
+              const slots = [];
+              if (med.dosageSlots?.breakfast) slots.push('Breakfast');
+              if (med.dosageSlots?.lunch) slots.push('Lunch');
+              if (med.dosageSlots?.dinner) slots.push('Dinner');
+              const doseLabel = slots.join('/') || '1 Dose';
 
-            triggeredAlarms.add(`${rx.id}-${med.id}-${format24}`);
-          }
+              sendMedicineAlarmNotification(
+                med.name,
+                doseLabel,
+                med.timing === 'before' ? 'Before food' : 'After food',
+                med.description
+              );
+
+              triggeredAlarms.add(alarmKey);
+            }
+          });
         });
       });
     }, 15000); // Poll every 15 seconds
 
     return () => clearInterval(interval);
   }, [prescriptions]);
+
+
 
   // Auth Handlers
   const handleLoginDoctor = () => {

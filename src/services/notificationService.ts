@@ -116,41 +116,37 @@ export function getNextUpcomingDose(medicines: PrescriptionMedicine[]): {
   const currentMinutes = now.getHours() * 60 + now.getMinutes();
 
   let closestDiff = Infinity;
-  let closestItem: {
-    nextTime: string;
-    medicineName: string;
-    dosage: string;
-    timing: string;
-    description?: string;
-    minutesRemaining: number;
-  } | null = null;
+  let closestItem: any = null;
 
   medicines.forEach((med) => {
-    if (!med.time) return;
-    const targetMinutes = parseTimeToMinutes(med.time);
+    if (!med.times || !Array.isArray(med.times)) return;
 
-    let diff = targetMinutes - currentMinutes;
-    if (diff <= 0) {
-      diff += 24 * 60; // Next day
-    }
+    med.times.forEach((timeStr) => {
+      const targetMinutes = parseTimeToMinutes(timeStr);
 
-    if (diff < closestDiff) {
-      closestDiff = diff;
-      const slots = [];
-      if (med.dosageSlots?.breakfast) slots.push('Breakfast');
-      if (med.dosageSlots?.lunch) slots.push('Lunch');
-      if (med.dosageSlots?.dinner) slots.push('Dinner');
-      const dosageSummary = slots.join('/') || '1 Dose';
+      let diff = targetMinutes - currentMinutes;
+      if (diff <= 0) {
+        diff += 24 * 60; // Next day
+      }
 
-      closestItem = {
-        nextTime: med.time,
-        medicineName: med.name,
-        dosage: dosageSummary,
-        timing: med.timing === 'before' ? 'Before Food' : 'After Food',
-        description: med.description,
-        minutesRemaining: diff,
-      };
-    }
+      if (diff < closestDiff) {
+        closestDiff = diff;
+        const slots = [];
+        if (med.dosageSlots?.breakfast) slots.push('Breakfast');
+        if (med.dosageSlots?.lunch) slots.push('Lunch');
+        if (med.dosageSlots?.dinner) slots.push('Dinner');
+        const dosageSummary = slots.join('/') || '1 Dose';
+
+        closestItem = {
+          nextTime: timeStr,
+          medicineName: med.name,
+          dosage: dosageSummary,
+          timing: med.timing === 'before' ? 'Before Food' : 'After Food',
+          description: med.description,
+          minutesRemaining: diff,
+        };
+      }
+    });
   });
 
   return closestItem;
