@@ -213,12 +213,16 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
         </div>
       </main>
 
-      {/* Footer */}
-      <footer className="max-w-md w-full mx-auto text-center py-2">
-        <p className={`text-[11px] ${isDark ? 'text-zinc-500' : 'text-slate-400'}`}>
-          Dr. Doctor Clinic • Your personalized All-in-One App
-        </p>
-      </footer>
+{/* Footer */}
+<footer className={`max-w-md w-full mx-auto text-center py-3 px-4 rounded-2xl border shadow-sm transition-colors ${
+  isDark ? 'bg-zinc-900 border-zinc-800 text-zinc-400' : 'bg-white border-slate-200 text-slate-500'
+}`}>
+  <p className="text-[11px] font-medium">
+    Dr. Doctor Clinic • Your personalized All-in-One App
+  </p>
+</footer>
+      
+      
     </div>
   );
 };

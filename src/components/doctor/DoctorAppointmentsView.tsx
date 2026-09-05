@@ -101,7 +101,7 @@ export const DoctorAppointmentsView: React.FC<DoctorAppointmentsViewProps> = ({
             <span>All Appointments & OPD Queue</span>
           </h2>
           <p className={`text-xs ${isDark ? 'text-zinc-400' : 'text-slate-500'}`}>
-            Comprehensive queue • Strict First-Come-First-Serve (FCFS) • Dates in DD/MM/YYYY
+            Comprehensive queue • Strict First-Come-First-Serve (FCFS)
           </p>
         </div>
 
@@ -156,63 +156,9 @@ export const DoctorAppointmentsView: React.FC<DoctorAppointmentsViewProps> = ({
       {/* Live Revenue & FCFS Status Strip */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         {/* Today's Revenue Strip */}
-        <div
-          className={`p-3.5 rounded-2xl border flex items-center justify-between gap-3 text-xs ${
-            isDark
-              ? 'bg-emerald-950/30 border-emerald-800/40 text-emerald-200'
-              : 'bg-emerald-50/80 border-emerald-200 text-emerald-950'
-          }`}
-        >
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
-              <IndianRupee className="w-4 h-4" />
-            </div>
-            <div>
-              <div className="flex items-center gap-1.5">
-                <span className="font-bold text-xs">Today&apos;s Revenue:</span>
-                <strong className="text-emerald-600 dark:text-emerald-400 font-black text-sm">
-                  ₹{calculatedTodayEarnings}
-                </strong>
-              </div>
-              <span className={`text-[11px] block ${isDark ? 'text-emerald-300/80' : 'text-emerald-700'}`}>
-                +₹500 credited automatically on clicking &ldquo;Completed&rdquo;
-              </span>
-            </div>
-          </div>
-          <span className="px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 font-mono text-[11px] font-bold shrink-0">
-            {todayCompletedAppointments.length} Done Today
-          </span>
-        </div>
+        
 
-        {/* FCFS Notice Banner */}
-        <div
-          className={`p-3.5 rounded-2xl border flex items-center justify-between gap-3 text-xs ${
-            isDark
-              ? 'bg-sky-950/30 border-sky-800/50 text-sky-200'
-              : 'bg-sky-50 border-sky-200 text-sky-900'
-          }`}
-        >
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-sky-600 text-white flex items-center justify-center font-bold text-xs shrink-0">
-              #1
-            </div>
-            <div>
-              <strong className="block font-semibold">
-                FCFS Continuous Queue Order
-              </strong>
-              <span
-                className={`text-[11px] block ${
-                  isDark ? 'text-sky-300/80' : 'text-sky-700'
-                }`}
-              >
-                Seats (1, 2, 3...) auto-shift up if an appointment is deleted.
-              </span>
-            </div>
-          </div>
-          <span className="px-2.5 py-1 rounded-full bg-sky-500/20 text-sky-700 dark:text-sky-300 font-mono text-[10px] font-bold shrink-0">
-            ACTIVE
-          </span>
-        </div>
+        
       </div>
 
       {/* Appointments List */}
