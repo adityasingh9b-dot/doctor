@@ -1,0 +1,17 @@
+{
+  "name": "Dr. Doctor - Clinic Control Panel",
+  "short_name": "Dr. Doctor",
+  "description": "Smart clinic management panel featuring FCFS live token queue, interactive prescription writer, and scheduled medicine reminder alarms.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#09090b",
+  "theme_color": "#a3e635",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/3774/3774299.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
