@@ -7,104 +7,106 @@ const require = createRequire(import.meta.url);
 const serviceAccount = require("./serviceAccountKey.json");
 
 initializeApp({
-  credential: cert(serviceAccount),
-  databaseURL: "https://doctor-8edc6-default-rtdb.firebaseio.com/"
+  credential: cert(serviceAccount),
+  databaseURL: "https://doctor-8edc6-default-rtdb.firebaseio.com/"
 });
 
 const db = getDatabase();
 const messaging = getMessaging();
 
-const sentAlarms = new Set();
 console.log("🚀 Medicine Notification Background Worker Started...");
 
-setInterval(async () => {
-  try {
-    const rootSnapshot = await db.ref("/").once("value");
-    if (!rootSnapshot.exists()) return;
+async function runWorker() {
+  try {
+    const rootSnapshot = await db.ref("/").once("value");
+    if (!rootSnapshot.exists()) {
+      console.log("❌ Database root is empty.");
+      process.exit(0);
+    }
 
-    const data = rootSnapshot.val();
-    const patients = data.patients || {};
-    const prescriptionsNode = data.prescriptions || data.clinic?.prescriptions || {};
+    const data = rootSnapshot.val();
+    const patients = data.patients || {};
+    const prescriptionsNode = data.prescriptions || data.clinic?.prescriptions || {};
 
-    const now = new Date();
-    const currentH = now.getHours();
-    const currentM = String(now.getMinutes()).padStart(2, '0');
-    const isPM = currentH >= 12;
-    const h12 = currentH % 12 || 12;
-    const h12Str = String(h12).padStart(2, '0');
-    const ampm = isPM ? 'PM' : 'AM';
+    const now = new Date();
+    // IST Offset adjustment (+5:30)
+    const istOffset = 5.5 * 60 * 60 * 1000;
+    const istDate = new Date(now.getTime() + istOffset + (now.getTimezoneOffset() * 60000));
 
-    const format24 = `${String(currentH).padStart(2, '0')}:${currentM}`;
-    const format12 = `${h12Str}:${currentM} ${ampm}`;
-    const todayDateStr = now.toISOString().split('T')[0];
+    const currentH = istDate.getHours();
+    const currentM = String(istDate.getMinutes()).padStart(2, "0");
+    const isPM = currentH >= 12;
+    const h12 = currentH % 12 || 12;
+    const h12Str = String(h12).padStart(2, "0");
+    const ampm = isPM ? "PM" : "AM";
 
-    if (now.getMinutes() === 0) {
-      sentAlarms.clear();
-    }
+    const format24 = `${String(currentH).padStart(2, "0")}:${currentM}`;
+    const format12 = `${h12Str}:${currentM} ${ampm}`;
 
-    // Har patient ke liye independent check
-    for (const [patientId, patientData] of Object.entries(patients)) {
-      const fcmToken = patientData.fcmToken;
-      if (!fcmToken) continue; // Agar token nahi hai toh skip karo
+    console.log(`⏰ Current IST Time checked: ${format24} / ${format12}`);
 
-      // Sirf is specific patient ki prescriptions filter karo
-      const patientPrescriptions = 
-        patientData.prescriptions || 
-        patientData.clinic?.prescriptions || 
-        Object.values(prescriptionsNode).filter(rx => rx.patientId === patientId || rx.clientId === patientId);
+    for (const [patientId, patientData] of Object.entries(patients)) {
+      const fcmToken = patientData.fcmToken;
+      if (!fcmToken) continue;
 
-      if (!patientPrescriptions) continue;
+      const patientPrescriptions = 
+        patientData.prescriptions || 
+        patientData.clinic?.prescriptions || 
+        Object.values(prescriptionsNode).filter(rx => rx.patientId === patientId || rx.clientId === patientId);
 
-      const rxList = Array.isArray(patientPrescriptions) 
-        ? patientPrescriptions 
-        : Object.values(patientPrescriptions);
+      if (!patientPrescriptions) continue;
 
-      rxList.forEach((rx) => {
-        if (!rx.medicines) return;
+      const rxList = Array.isArray(patientPrescriptions) 
+        ? patientPrescriptions 
+        : Object.values(patientPrescriptions);
 
-        rx.medicines.forEach((med, medIdx) => {
-          const timesArray = med.times || (med.time ? [med.time] : []);
-          if (!Array.isArray(timesArray)) return;
+      for (const rx of rxList) {
+        if (!rx.medicines) continue;
 
-          timesArray.forEach((t) => {
-            if (!t) return;
-            const cleanTime = String(t).trim().toUpperCase();
-            const alarmKey = `${patientId}-${rx.id || medIdx}-${cleanTime}-${todayDateStr}`;
+        for (const med of rx.medicines) {
+          const timesArray = med.times || (med.time ? [med.time] : []);
+          if (!Array.isArray(timesArray)) continue;
 
-            if (
-              (cleanTime === format24 || cleanTime === format12) &&
-              !sentAlarms.has(alarmKey)
-            ) {
-              const slots = [];
-              if (med.dosageSlots?.breakfast) slots.push('Breakfast');
-              if (med.dosageSlots?.lunch) slots.push('Lunch');
-              if (med.dosageSlots?.dinner) slots.push('Dinner');
-              const doseLabel = slots.join('/') || '1 Dose';
+          for (const t of timesArray) {
+            if (!t) continue;
+            const cleanTime = String(t).trim().toUpperCase();
 
-              const message = {
-                notification: {
-                  title: `⏰ Medicine Reminder: ${med.name}`,
-                  body: `Time to take ${doseLabel} (${med.timing === 'before' ? 'Before food' : 'After food'}). ${med.description ? `Note: ${med.description}` : ''}`
-                },
-                token: fcmToken // Target token strictly ishi patient ka hai
-              };
+            if (cleanTime === format24 || cleanTime === format12) {
+              const slots = [];
+              if (med.dosageSlots?.breakfast) slots.push("Breakfast");
+              if (med.dosageSlots?.lunch) slots.push("Lunch");
+              if (med.dosageSlots?.dinner) slots.push("Dinner");
+              const doseLabel = slots.join("/") || "1 Dose";
 
-              messaging.send(message)
-                .then((response) => {
-                  console.log(`✅ Push sent to patient ${patientId} (${patientData.name}) for ${med.name} at ${cleanTime}`);
-                  sentAlarms.add(alarmKey);
-                })
-                .catch((error) => {
-                  console.error(`❌ Error sending push to ${patientId}:`, error);
-                });
-            }
-          });
-        });
-      });
-    }
-  } catch (err) {
-    console.error("Error in worker polling loop:", err);
-  }
-}, 30000);
+              const timingText = med.timing === "before" ? "Before food" : "After food";
+              const descText = med.description ? `Note: ${med.description}` : "";
+              const bodyText = `Time to take ${doseLabel} (${timingText}). ${descText}`.trim();
 
+              const message = {
+                notification: {
+                  title: `⏰ Medicine Reminder: ${med.name}`,
+                  body: bodyText,
+                },
+                token: fcmToken,
+              };
 
+              try {
+                const response = await messaging.send(message);
+                console.log(`✅ Push sent to patient ${patientId} (${patientData.name || "User"}) for ${med.name} at ${cleanTime}. Response:`, response);
+              } catch (error) {
+                console.error(`❌ Error sending push to ${patientId}:`, error);
+              }
+            }
+          }
+        }
+      }
+    }
+    console.log("🏁 Worker execution finished successfully.");
+    process.exit(0);
+  } catch (err) {
+    console.error("❌ Error in worker execution:", err);
+    process.exit(1);
+  }
+}
+
+runWorker();
