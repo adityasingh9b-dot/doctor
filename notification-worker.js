@@ -6,13 +6,13 @@ import { createRequire } from "module";
 const require = createRequire(import.meta.url);
 const serviceAccount = require("./serviceAccountKey.json");
 
-initializeApp({
+const app = initializeApp({
   credential: cert(serviceAccount),
   databaseURL: "https://doctor-8edc6-default-rtdb.firebaseio.com/"
 });
 
-const db = getDatabase();
-const messaging = getMessaging();
+const db = getDatabase(app);
+const messaging = getMessaging(app);
 
 console.log("🚀 Medicine Notification Background Worker Started...");
 
@@ -21,29 +21,26 @@ async function runWorker() {
     const rootSnapshot = await db.ref("/").once("value");
     if (!rootSnapshot.exists()) {
       console.log("❌ Database root is empty.");
+      await db.goOffline();
       process.exit(0);
     }
 
     const data = rootSnapshot.val();
     const patients = data.patients || {};
 
-    // Collect all prescriptions from everywhere in the DB (root level objects, prescriptions node, patient nodes)
     let allPrescriptions = [];
     
-    // 1. Check root level objects (e.g., rx-... keys directly at root)
     for (const [key, val] of Object.entries(data)) {
       if (val && typeof val === 'object' && (val.medicines || val.patientId || key.startsWith('rx-'))) {
         allPrescriptions.push(val);
       }
     }
 
-    // 2. Check explicit prescriptions node if exists
     if (data.prescriptions) {
       const pNode = Array.isArray(data.prescriptions) ? data.prescriptions : Object.values(data.prescriptions);
       allPrescriptions.push(...pNode);
     }
 
-    // 3. Check inside each patient node
     for (const [patientId, patientData] of Object.entries(patients)) {
       if (patientData.prescriptions) {
         const pList = Array.isArray(patientData.prescriptions) ? patientData.prescriptions : Object.values(patientData.prescriptions);
@@ -52,7 +49,6 @@ async function runWorker() {
     }
 
     const now = new Date();
-    // IST Offset adjustment (+5:30)
     const istOffset = 5.5 * 60 * 60 * 1000;
     const istDate = new Date(now.getTime() + istOffset + (now.getTimezoneOffset() * 60000));
 
@@ -76,10 +72,7 @@ async function runWorker() {
       const patientData = patients[patientId] || {};
       const fcmToken = patientData.fcmToken || rx.fcmToken;
 
-      if (!fcmToken) {
-        console.log(`⚠️ No FCM token found for prescription/patient: ${patientId}`);
-        continue;
-      }
+      if (!fcmToken) continue;
 
       const medList = Array.isArray(rx.medicines) ? rx.medicines : Object.values(rx.medicines);
 
@@ -90,8 +83,6 @@ async function runWorker() {
         for (const t of timesArray) {
           if (!t) continue;
           const cleanTime = String(t).trim().toUpperCase();
-
-          console.log(`🔍 Checking medicine '${med.name}' scheduled at '${cleanTime}' against current time '${format24}' / '${format12}'`);
 
           if (cleanTime === format24 || cleanTime === format12) {
             const slots = [];
@@ -124,9 +115,11 @@ async function runWorker() {
     }
 
     console.log("🏁 Worker execution finished successfully.");
+    await db.goOffline();
     process.exit(0);
   } catch (err) {
     console.error("❌ Error in worker execution:", err);
+    await db.goOffline();
     process.exit(1);
   }
 }
