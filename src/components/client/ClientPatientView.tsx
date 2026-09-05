@@ -799,8 +799,8 @@ export const ClientPatientView: React.FC<ClientPatientViewProps> = ({
                           </div>
 
                           <span className="px-2 py-0.5 rounded-full bg-sky-500/15 text-sky-600 dark:text-sky-400 font-mono text-[11px] font-bold shrink-0">
-                            ⏰ {med.time || '08:00 AM'}
-                          </span>
+  ⏰ {med.times && med.times.length > 0 ? med.times.join(', ') : '08:00 AM'}
+</span>
                         </div>
 
                         <div className="flex flex-wrap items-center gap-2 text-[11px]">
