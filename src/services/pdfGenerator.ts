@@ -162,7 +162,7 @@ export function generatePrescriptionPDF(rx: Prescription): jsPDF {
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(8);
 
-  rx.medicines.forEach((med, index) => {
+rx.medicines.forEach((med, index) => {
     const medNameLines = doc.splitTextToSize(med.name, colWidths[0] - 5);
     const medDescLines = doc.splitTextToSize(med.description || 'Take as directed', colWidths[1] - 5);
 
@@ -177,8 +177,12 @@ export function generatePrescriptionPDF(rx: Prescription): jsPDF {
     // Timing label
     const timingLabel = med.timing === 'before' ? 'Before Food' : 'After Food';
 
-    // Calculate maximum lines for this row
-    const lineCount = Math.max(medNameLines.length, medDescLines.length, doseLines.length, 1);
+    // Alarm Times Array processing with text splitting to handle multi-line strings gracefully if many times exist
+    const alarmTimesStr = med.times && med.times.length > 0 ? med.times.join(', ') : 'As Directed';
+    const alarmLines = doc.splitTextToSize(alarmTimesStr, colWidths[4] - 5);
+
+    // Calculate maximum lines for this row (including alarm lines)
+    const lineCount = Math.max(medNameLines.length, medDescLines.length, doseLines.length, alarmLines.length, 1);
     const rowHeight = Math.max(9, lineCount * 4 + 4);
 
     // Alternate row fill
@@ -208,10 +212,10 @@ export function generatePrescriptionPDF(rx: Prescription): jsPDF {
     // Col 3: Food Timing
     doc.text(timingLabel, startX + colWidths[0] + colWidths[1] + colWidths[2] + 3, y + 4.5);
 
-    // Col 4: Alarm Time (no broken unicode emoji)
+    // Col 4: Alarm Times Array
     doc.setTextColor(15, 118, 110);
     doc.setFont('helvetica', 'bold');
-    doc.text(med.time || '08:00 AM', startX + colWidths[0] + colWidths[1] + colWidths[2] + colWidths[3] + 3, y + 4.5);
+    doc.text(alarmLines, startX + colWidths[0] + colWidths[1] + colWidths[2] + colWidths[3] + 3, y + 4.5);
 
     doc.setFont('helvetica', 'normal');
     y += rowHeight;
