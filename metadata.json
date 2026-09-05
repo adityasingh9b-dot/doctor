@@ -1,0 +1,8 @@
+{
+  "name": "Dr. Doctor",
+  "description": "Smart clinic management panel featuring FCFS live token queue, interactive prescription writer, PDF download for patients, and scheduled medicine reminder alarms.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
