@@ -1,4 +1,9 @@
 import React, { useState, useEffect } from 'react';
+import { requestAndSaveFCMToken } from './services/fcm';
+import { db, messaging } from './services/firebase';
+
+
+
 import {
   ClientUser,
   Appointment,
@@ -125,6 +130,7 @@ export default function App() {
     saveAuthSession(docSession);
   };
 
+  
   const handleLoginClient = (clientUser: ClientUser) => {
     const clientSession: AuthSession = {
       role: 'client',
@@ -132,6 +138,11 @@ export default function App() {
     };
     setAuthSession(clientSession);
     saveAuthSession(clientSession);
+
+    // Request notification permission and save FCM token for the logged-in client
+    if (db && messaging) {
+      requestAndSaveFCMToken(clientUser.id, db, messaging);
+    }
   };
 
   const handleLogout = () => {
