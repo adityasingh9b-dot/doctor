@@ -26,7 +26,30 @@ async function runWorker() {
 
     const data = rootSnapshot.val();
     const patients = data.patients || {};
-    const prescriptionsNode = data.prescriptions || data.clinic?.prescriptions || {};
+
+    // Collect all prescriptions from everywhere in the DB (root level objects, prescriptions node, patient nodes)
+    let allPrescriptions = [];
+    
+    // 1. Check root level objects (e.g., rx-... keys directly at root)
+    for (const [key, val] of Object.entries(data)) {
+      if (val && typeof val === 'object' && (val.medicines || val.patientId || key.startsWith('rx-'))) {
+        allPrescriptions.push(val);
+      }
+    }
+
+    // 2. Check explicit prescriptions node if exists
+    if (data.prescriptions) {
+      const pNode = Array.isArray(data.prescriptions) ? data.prescriptions : Object.values(data.prescriptions);
+      allPrescriptions.push(...pNode);
+    }
+
+    // 3. Check inside each patient node
+    for (const [patientId, patientData] of Object.entries(patients)) {
+      if (patientData.prescriptions) {
+        const pList = Array.isArray(patientData.prescriptions) ? patientData.prescriptions : Object.values(patientData.prescriptions);
+        allPrescriptions.push(...pList);
+      }
+    }
 
     const now = new Date();
     // IST Offset adjustment (+5:30)
@@ -44,63 +67,62 @@ async function runWorker() {
     const format12 = `${h12Str}:${currentM} ${ampm}`;
 
     console.log(`⏰ Current IST Time checked: ${format24} / ${format12}`);
+    console.log(`📦 Total prescriptions found across DB: ${allPrescriptions.length}`);
 
-    for (const [patientId, patientData] of Object.entries(patients)) {
-      const fcmToken = patientData.fcmToken;
-      if (!fcmToken) continue;
+    for (const rx of allPrescriptions) {
+      if (!rx || !rx.medicines) continue;
+      
+      const patientId = rx.patientId || rx.clientId;
+      const patientData = patients[patientId] || {};
+      const fcmToken = patientData.fcmToken || rx.fcmToken;
 
-      const patientPrescriptions = 
-        patientData.prescriptions || 
-        patientData.clinic?.prescriptions || 
-        Object.values(prescriptionsNode).filter(rx => rx.patientId === patientId || rx.clientId === patientId);
+      if (!fcmToken) {
+        console.log(`⚠️ No FCM token found for prescription/patient: ${patientId}`);
+        continue;
+      }
 
-      if (!patientPrescriptions) continue;
+      const medList = Array.isArray(rx.medicines) ? rx.medicines : Object.values(rx.medicines);
 
-      const rxList = Array.isArray(patientPrescriptions) 
-        ? patientPrescriptions 
-        : Object.values(patientPrescriptions);
+      for (const [medIdx, med] of medList.entries()) {
+        const timesArray = med.times || (med.time ? [med.time] : []);
+        if (!Array.isArray(timesArray)) continue;
 
-      for (const rx of rxList) {
-        if (!rx.medicines) continue;
+        for (const t of timesArray) {
+          if (!t) continue;
+          const cleanTime = String(t).trim().toUpperCase();
 
-        for (const med of rx.medicines) {
-          const timesArray = med.times || (med.time ? [med.time] : []);
-          if (!Array.isArray(timesArray)) continue;
+          console.log(`🔍 Checking medicine '${med.name}' scheduled at '${cleanTime}' against current time '${format24}' / '${format12}'`);
 
-          for (const t of timesArray) {
-            if (!t) continue;
-            const cleanTime = String(t).trim().toUpperCase();
+          if (cleanTime === format24 || cleanTime === format12) {
+            const slots = [];
+            if (med.dosageSlots?.breakfast) slots.push("Breakfast");
+            if (med.dosageSlots?.lunch) slots.push("Lunch");
+            if (med.dosageSlots?.dinner) slots.push("Dinner");
+            const doseLabel = slots.join("/") || "1 Dose";
 
-            if (cleanTime === format24 || cleanTime === format12) {
-              const slots = [];
-              if (med.dosageSlots?.breakfast) slots.push("Breakfast");
-              if (med.dosageSlots?.lunch) slots.push("Lunch");
-              if (med.dosageSlots?.dinner) slots.push("Dinner");
-              const doseLabel = slots.join("/") || "1 Dose";
+            const timingText = med.timing === "before" ? "Before food" : "After food";
+            const descText = med.description ? `Note: ${med.description}` : "";
+            const bodyText = `Time to take ${doseLabel} (${timingText}). ${descText}`.trim();
 
-              const timingText = med.timing === "before" ? "Before food" : "After food";
-              const descText = med.description ? `Note: ${med.description}` : "";
-              const bodyText = `Time to take ${doseLabel} (${timingText}). ${descText}`.trim();
+            const message = {
+              notification: {
+                title: `⏰ Medicine Reminder: ${med.name}`,
+                body: bodyText,
+              },
+              token: fcmToken,
+            };
 
-              const message = {
-                notification: {
-                  title: `⏰ Medicine Reminder: ${med.name}`,
-                  body: bodyText,
-                },
-                token: fcmToken,
-              };
-
-              try {
-                const response = await messaging.send(message);
-                console.log(`✅ Push sent to patient ${patientId} (${patientData.name || "User"}) for ${med.name} at ${cleanTime}. Response:`, response);
-              } catch (error) {
-                console.error(`❌ Error sending push to ${patientId}:`, error);
-              }
+            try {
+              const response = await messaging.send(message);
+              console.log(`✅ Push sent successfully for ${med.name} at ${cleanTime}. Response:`, response);
+            } catch (error) {
+              console.error(`❌ Error sending push for ${med.name}:`, error);
             }
           }
         }
       }
     }
+
     console.log("🏁 Worker execution finished successfully.");
     process.exit(0);
   } catch (err) {
