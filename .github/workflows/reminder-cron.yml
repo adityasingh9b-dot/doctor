@@ -2,7 +2,8 @@ name: Medicine Reminder Cron
 
 on:
   schedule:
-    - cron: '*/1 * * * *' 
+    - cron: '*/1 * * * *' # Runs every 1 minute
+  workflow_dispatch: # Enables the manual "Run workflow" button
 
 jobs:
   run-worker:
