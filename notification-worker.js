@@ -29,23 +29,22 @@ async function runWorker() {
     const patients = data.patients || {};
 
     let allPrescriptions = [];
-    
+
+    // Root level entries ko scan karo (jaise 0, 1, 2, 3... ya rx-... keys)
     for (const [key, val] of Object.entries(data)) {
-      if (val && typeof val === 'object' && (val.medicines || val.patientId || key.startsWith('rx-'))) {
+      if (val && typeof val === 'object' && val.medicines && val.patientId) {
         allPrescriptions.push(val);
       }
     }
 
+    // Agar prescriptions node ya clinic.prescriptions bhi kahin ho toh unhe bhi le lo
     if (data.prescriptions) {
-      const pNode = Array.isArray(data.prescriptions) ? data.prescriptions : Object.values(data.prescriptions);
-      allPrescriptions.push(...pNode);
+      const pList = Array.isArray(data.prescriptions) ? data.prescriptions : Object.values(data.prescriptions);
+      allPrescriptions.push(...pList.filter(Boolean));
     }
-
-    for (const [patientId, patientData] of Object.entries(patients)) {
-      if (patientData.prescriptions) {
-        const pList = Array.isArray(patientData.prescriptions) ? patientData.prescriptions : Object.values(patientData.prescriptions);
-        allPrescriptions.push(...pList);
-      }
+    if (data.clinic?.prescriptions) {
+      const cList = Array.isArray(data.clinic.prescriptions) ? data.clinic.prescriptions : Object.values(data.clinic.prescriptions);
+      allPrescriptions.push(...cList.filter(Boolean));
     }
 
     const now = new Date();
@@ -63,26 +62,31 @@ async function runWorker() {
     const format12 = `${h12Str}:${currentM} ${ampm}`;
 
     console.log(`⏰ Current IST Time checked: ${format24} / ${format12}`);
-    console.log(`📦 Total prescriptions found across DB: ${allPrescriptions.length}`);
+    console.log(`📦 Total prescriptions found: ${allPrescriptions.length}`);
 
     for (const rx of allPrescriptions) {
       if (!rx || !rx.medicines) continue;
       
       const patientId = rx.patientId || rx.clientId;
-      const patientData = patients[patientId] || {};
-      const fcmToken = patientData.fcmToken || rx.fcmToken;
+      const patientObj = patients[patientId] || {};
+      const fcmToken = patientObj.fcmToken || rx.fcmToken;
 
-      if (!fcmToken) continue;
+      if (!fcmToken) {
+        console.log(`⚠️ Skipping prescription: No FCM token found for patient ${patientId}`);
+        continue;
+      }
 
       const medList = Array.isArray(rx.medicines) ? rx.medicines : Object.values(rx.medicines);
 
-      for (const [medIdx, med] of medList.entries()) {
-        const timesArray = med.times || (med.time ? [med.time] : []);
-        if (!Array.isArray(timesArray)) continue;
+      for (const med of medList) {
+        if (!med || !med.times) continue;
+        const timesArray = Array.isArray(med.times) ? med.times : Object.values(med.times);
 
         for (const t of timesArray) {
           if (!t) continue;
           const cleanTime = String(t).trim().toUpperCase();
+
+          console.log(`🔍 Checking medicine '${med.name}' scheduled at '${cleanTime}' against current time '${format24}' / '${format12}'`);
 
           if (cleanTime === format24 || cleanTime === format12) {
             const slots = [];
@@ -105,7 +109,7 @@ async function runWorker() {
 
             try {
               const response = await messaging.send(message);
-              console.log(`✅ Push sent successfully for ${med.name} at ${cleanTime}. Response:`, response);
+              console.log(`✅ Push sent successfully for ${med.name} to patient ${patientId}. Response:`, response);
             } catch (error) {
               console.error(`❌ Error sending push for ${med.name}:`, error);
             }
