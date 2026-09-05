@@ -10,16 +10,15 @@
     <meta property="og:type" content="website" />
     <meta name="twitter:card" content="summary_large_image" />
 
-    <!-- PWA Manifest & Theme -->
-    <link rel="manifest" href="/manifest.json" />
-    <meta name="theme-color" content="#18181b" />
     <meta http-equiv="Permissions-Policy" content="camera=*, microphone=*, display-capture=*">
+
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="theme-color" content="#a3e635" />
   </head>
   <body class="bg-zinc-950 text-zinc-100 antialiased min-h-screen">
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
 
-    <!-- Custom Install App Banner (PWA) -->
     <div id="install-banner" style="position: fixed; bottom: 0; left: 0; right: 0; background: #18181b; border-top: 3px solid #a3e635; padding: 20px; border-top-left-radius: 24px; border-top-right-radius: 24px; box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.7); display: none; z-index: 99999; font-family: system-ui, -apple-system, sans-serif;">
       <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
         <div style="display: flex; align-items: center; gap: 14px;">
@@ -28,7 +27,7 @@
           </div>
           <div>
             <h4 style="margin: 0; color: #ffffff; font-size: 1.05rem; font-weight: 700; text-transform: uppercase;">Install Dr. Doctor App</h4>
-            <p style="margin: 2px 0 0 0; color: #a1a1aa; font-size: 0.8rem;">Access your clinic panel quickly from home screen</p>
+            <p style="margin: 2px 0 0 0; color: #a1a1aa; font-size: 0.8rem;">Access clinic panel from your home screen</p>
           </div>
         </div>
         <button id="btn-close-banner" style="background: none; border: none; color: #a1a1aa; font-size: 1.6rem; cursor: pointer; padding: 0 4px; line-height: 1;">&times;</button>
@@ -38,7 +37,6 @@
       </button>
     </div>
 
-    <!-- PWA Install Prompt Logic -->
     <script>
       let deferredPrompt = null;
       const installBanner = document.getElementById('install-banner');
@@ -64,7 +62,7 @@
         
         const { outcome } = await deferredPrompt.userChoice;
         if (outcome === 'accepted') {
-          console.log('Dr. Doctor app installed successfully!');
+          console.log('Dr. Doctor app shortcut added successfully!');
         }
         deferredPrompt = null;
       });
@@ -77,7 +75,7 @@
         if (installBanner) {
           installBanner.style.display = 'none';
         }
-        deferredPrompt = null;
+        deferredplate = null;
       });
     </script>
   </body>
