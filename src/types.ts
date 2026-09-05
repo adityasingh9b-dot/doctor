@@ -30,7 +30,7 @@ export interface PrescriptionMedicine {
     dinner: boolean;
   };
   timing: 'before' | 'after'; // before / after options select
-  time: string; // Exact time string (e.g. "08:30" or "08:30 AM")
+  times: string[]; // Multiple time slots (e.g. ["08:30", "14:00", "20:00"])
   durationDays?: number;
   takenToday?: boolean;
 }

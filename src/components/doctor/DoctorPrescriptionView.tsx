@@ -77,7 +77,7 @@ export const DoctorPrescriptionView: React.FC<DoctorPrescriptionViewProps> = ({
       description: '',
       dosageSlots: { breakfast: true, lunch: false, dinner: true },
       timing: 'after',
-      time: '08:30 AM',
+      times: ['08:30'], // Multiple times array with native clock picker support
       durationDays: 5,
     };
     setMedicines([...medicines, newMed]);
@@ -94,6 +94,42 @@ export const DoctorPrescriptionView: React.FC<DoctorPrescriptionViewProps> = ({
   ) => {
     setMedicines(
       medicines.map((m) => (m.id === id ? { ...m, [field]: value } : m))
+    );
+  };
+  
+  const handleAddMedTime = (medId: string) => {
+    setMedicines(
+      medicines.map((m) => {
+        if (m.id === medId) {
+          return { ...m, times: [...m.times, '12:00'] };
+        }
+        return m;
+      })
+    );
+  };
+
+  const handleRemoveMedTime = (medId: string, timeIndex: number) => {
+    setMedicines(
+      medicines.map((m) => {
+        if (m.id === medId) {
+          const newTimes = m.times.filter((_, idx) => idx !== timeIndex);
+          return { ...m, times: newTimes.length > 0 ? newTimes : ['08:30'] };
+        }
+        return m;
+      })
+    );
+  };
+
+  const handleUpdateMedTime = (medId: string, timeIndex: number, value: string) => {
+    setMedicines(
+      medicines.map((m) => {
+        if (m.id === medId) {
+          const newTimes = [...m.times];
+          newTimes[timeIndex] = value;
+          return { ...m, times: newTimes };
+        }
+        return m;
+      })
     );
   };
 
@@ -608,28 +644,48 @@ export const DoctorPrescriptionView: React.FC<DoctorPrescriptionViewProps> = ({
                     </select>
                   </div>
 
-                  {/* Alarm Time picker / input */}
-                  <div>
-                    <label
-                      className={`block text-[11px] font-semibold mb-1.5 flex items-center gap-1 ${
-                        isDark ? 'text-zinc-300' : 'text-slate-700'
-                      }`}
-                    >
-                      <Clock className="w-3.5 h-3.5 text-amber-500" />
-                      <span>Notification Time</span>
-                    </label>
-                    <input
-                      type="text"
-                      value={med.time}
-                      onChange={(e) => handleUpdateMed(med.id, 'time', e.target.value)}
-                      placeholder="e.g. 08:30 AM"
-                      className={`w-full px-3 py-2 rounded-xl text-xs font-mono font-bold border focus:outline-none focus:ring-2 focus:ring-sky-500 ${
-                        isDark
-                          ? 'bg-black/50 border-zinc-700 text-amber-400'
-                          : 'bg-white border-slate-300 text-amber-700'
-                      }`}
-                    />
+                 {/* Alarm Time pickers with multiple time support */}
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <label className={`block text-[11px] font-semibold flex items-center gap-1 ${isDark ? 'text-zinc-300' : 'text-slate-700'}`}>
+                        <Clock className="w-3.5 h-3.5 text-amber-500" />
+                        <span>Notification Times (Alarm Clocks)</span>
+                      </label>
+                      <button
+                        type="button"
+                        onClick={() => handleAddMedTime(med.id)}
+                        className="text-[10px] text-sky-500 hover:underline font-semibold"
+                      >
+                        + Add Time
+                      </button>
+                    </div>
+
+                    <div className="flex flex-wrap gap-2">
+                      {med.times?.map((t, tIdx) => (
+                        <div key={tIdx} className="flex items-center gap-1 bg-black/20 p-1.5 rounded-xl border border-zinc-700/50">
+                          <input
+                            type="time"
+                            value={t}
+                            onChange={(e) => handleUpdateMedTime(med.id, tIdx, e.target.value)}
+                            className={`px-2 py-1 rounded-lg text-xs font-mono font-bold border focus:outline-none focus:ring-1 focus:ring-sky-500 ${
+                              isDark ? 'bg-zinc-900 border-zinc-700 text-amber-400' : 'bg-white border-slate-300 text-amber-700'
+                            }`}
+                          />
+                          {med.times.length > 1 && (
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveMedTime(med.id, tIdx)}
+                              className="text-rose-500 hover:text-rose-400 px-1 text-xs font-bold"
+                              title="Remove time slot"
+                            >
+                              ×
+                            </button>
+                          )}
+                        </div>
+                      ))}
+                    </div>
                   </div>
+                  
                 </div>
               </div>
             ))}
