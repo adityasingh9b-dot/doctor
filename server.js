@@ -1,14 +1,17 @@
+
+import { createRequire } from "module";
+
 import express from "express";
 import { initializeApp, cert } from "firebase-admin/app";
 import { getMessaging } from "firebase-admin/messaging";
 import { getDatabase } from "firebase-admin/database";
-import { createRequire } from "module";
-
-const require = createRequire(import.meta.url);
-const serviceAccount = require("./serviceAccountKey.json");
 
 initializeApp({
-  credential: cert(serviceAccount),
+  credential: cert({
+    projectId: process.env.FIREBASE_PROJECT_ID,
+    clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+    privateKey: process.env.FIREBASE_PRIVATE_KEY ? process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n') : undefined
+  }),
   databaseURL: "https://doctor-8edc6-default-rtdb.firebaseio.com/"
 });
 
