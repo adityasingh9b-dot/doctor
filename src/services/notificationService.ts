@@ -1,5 +1,7 @@
 import { playMedicineChime } from './sound';
 import { PrescriptionMedicine } from '../types';
+import { getFCMToken, db } from './firebase';
+import { ref, set } from 'firebase/database';
 
 let notificationPermission: NotificationPermission = 'default';
 
@@ -26,6 +28,27 @@ export function getNotificationStatus(): NotificationPermission {
     return 'denied';
   }
   return Notification.permission;
+}
+
+/**
+ * Registers device for Firebase Cloud Messaging (FCM) and saves token to database
+ */
+export async function registerDeviceForPush(patientId: string): Promise<string | null> {
+  try {
+    const granted = await requestNotificationAccess();
+    if (granted) {
+      const token = await getFCMToken();
+      if (token && patientId) {
+        const tokenRef = ref(db, `patients/${patientId}/fcmToken`);
+        await set(tokenRef, token);
+        console.log('FCM Token successfully saved to DB for patient:', patientId);
+        return token;
+      }
+    }
+  } catch (error) {
+    console.error('Failed to register device for push notifications:', error);
+  }
+  return null;
 }
 
 export function sendMedicineAlarmNotification(
