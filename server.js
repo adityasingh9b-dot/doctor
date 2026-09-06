@@ -20,10 +20,11 @@ const messaging = getMessaging();
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-app.get("/", (req, res) => {
+// Express route ko aise update kar dein taaki ping aane par function run ho jaye
+app.get("/", async (req, res) => {
+  await checkAndSendReminders(); // Jab bhi ping aayegi, check chal padega
   res.send("🚀 Medicine Notification Worker is running live!");
 });
-
 // Background check function running every 1 minute
 async function checkAndSendReminders() {
   try {
