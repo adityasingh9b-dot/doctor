@@ -211,64 +211,7 @@ export const INITIAL_CLIENTS: ClientUser[] = [
   },
 ];
 
-export const INITIAL_PRESCRIPTIONS: Prescription[] = [
-  {
-    id: 'rx-demo-101',
-    appointmentId: 'apt-1',
-    patientId: 'client-2',
-    patientName: 'Ananya Iyer',
-    patientAge: 26,
-    patientGender: 'Female',
-    patientPhone: '9811122334',
-    doctorName: DOCTOR_ADMIN.name,
-    doctorRegNo: DOCTOR_ADMIN.regNumber,
-    clinicName: DEFAULT_CLINIC.name,
-    clinicAddress: DEFAULT_CLINIC.address,
-    clinicPhone: DOCTOR_ADMIN.phone,
-    date: getTodayDateString(),
-    diagnosis: 'Acute Upper Respiratory Tract Infection & Mild Pharyngitis',
-    symptoms: ['Dry Cough', 'Low Grade Fever (99.6°F)', 'Sore Throat'],
-    vitals: {
-      bp: '120/80',
-      pulse: '76',
-      temperature: '99.4',
-      spo2: '98',
-      weight: '58',
-    },
-    medicines: [
-      {
-        id: 'm-1',
-        name: 'Amoxicillin + Potassium Clavulanate (625mg)',
-        description: 'Broad spectrum antibiotic to clear throat and chest infection.',
-        dosageSlots: { breakfast: true, lunch: false, dinner: true },
-        timing: 'after',
-        time: '09:00 AM',
-        durationDays: 5,
-      },
-      {
-        id: 'm-2',
-        name: 'Paracetamol 650mg (Dolo)',
-        description: 'For body ache, throat discomfort, and fever control.',
-        dosageSlots: { breakfast: true, lunch: true, dinner: true },
-        timing: 'after',
-        time: '02:00 PM',
-        durationDays: 3,
-      },
-      {
-        id: 'm-3',
-        name: 'Pantoprazole 40mg (Pan 40)',
-        description: 'Antacid to prevent stomach irritation from antibiotics.',
-        dosageSlots: { breakfast: true, lunch: false, dinner: false },
-        timing: 'before',
-        time: '08:00 AM',
-        durationDays: 5,
-      },
-    ],
-    generalAdvice: 'Drink plenty of lukewarm fluids, avoid cold drinks, complete full antibiotic course.',
-    followUpDate: getNextDayDateString(),
-    createdAt: Date.now() - 3600000,
-  },
-];
+export const INITIAL_PRESCRIPTIONS: Prescription[] = [];
 
 export const INITIAL_APPOINTMENTS: Appointment[] = [
   {
