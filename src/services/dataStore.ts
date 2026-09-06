@@ -408,18 +408,29 @@ export function subscribeToRealtimeSync(onUpdate: () => void): () => void {
   const listener = onValue(clinicRef, (snapshot) => {
     if (snapshot.exists()) {
       const data = snapshot.val();
+      
       if (data.clients) {
         localStorage.setItem(STORAGE_KEYS.CLIENTS, JSON.stringify(Object.values(data.clients)));
+      } else {
+        localStorage.removeItem(STORAGE_KEYS.CLIENTS);
       }
+
       if (data.appointments) {
         localStorage.setItem(STORAGE_KEYS.APPOINTMENTS, JSON.stringify(Object.values(data.appointments)));
+      } else {
+        localStorage.removeItem(STORAGE_KEYS.APPOINTMENTS);
       }
+
       if (data.prescriptions) {
         localStorage.setItem(STORAGE_KEYS.PRESCRIPTIONS, JSON.stringify(Object.values(data.prescriptions)));
+      } else {
+        localStorage.removeItem(STORAGE_KEYS.PRESCRIPTIONS); // Firebase se udte hi local storage se bhi saaf
       }
+
       if (data.config) {
         localStorage.setItem(STORAGE_KEYS.CLINIC, JSON.stringify(data.config));
       }
+      
       onUpdate();
     }
   }, (error) => {
