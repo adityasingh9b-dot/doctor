@@ -168,112 +168,11 @@ export function calculateAgeFromDob(dobStr?: string): number | undefined {
   }
 }
 
-export const INITIAL_CLIENTS: ClientUser[] = [
-  {
-    id: 'client-1',
-    name: 'Rahul Sharma',
-    phone: '9876543210',
-    passkey: '1111',
-    dob: '1995-04-12',
-    age: 29,
-    gender: 'Male',
-    registeredAt: Date.now() - 7 * 86400000,
-  },
-  {
-    id: 'client-2',
-    name: 'Ananya Iyer',
-    phone: '9811122334',
-    passkey: '2222',
-    dob: '1998-08-25',
-    age: 26,
-    gender: 'Female',
-    registeredAt: Date.now() - 5 * 86400000,
-  },
-  {
-    id: 'client-3',
-    name: 'Kevin Peters',
-    phone: '9822233445',
-    passkey: '3333',
-    dob: '1982-11-05',
-    age: 42,
-    gender: 'Male',
-    registeredAt: Date.now() - 3 * 86400000,
-  },
-  {
-    id: 'client-4',
-    name: 'Sunita Verma',
-    phone: '9833344556',
-    passkey: '4444',
-    dob: '1972-02-18',
-    age: 52,
-    gender: 'Female',
-    registeredAt: Date.now() - 1 * 86400000,
-  },
-];
+export const INITIAL_CLIENTS: ClientUser[] = [];
 
 export const INITIAL_PRESCRIPTIONS: Prescription[] = [];
 
-export const INITIAL_APPOINTMENTS: Appointment[] = [
-  {
-    id: 'apt-1',
-    tokenNumber: 1,
-    patientId: 'client-2',
-    patientName: 'Ananya Iyer',
-    patientPhone: '9811122334',
-    patientAge: 26,
-    patientGender: 'Female',
-    date: getTodayDateString(),
-    isNextDay: false,
-    reasonForVisit: 'Severe sore throat and coughing since 2 days',
-    bookedAt: Date.now() - 50 * 60 * 1000,
-    status: 'in-cabin',
-    cabinNumber: 'Room 1',
-    calledAt: Date.now() - 10 * 60 * 1000,
-    prescriptionId: 'rx-demo-101',
-  },
-  {
-    id: 'apt-2',
-    tokenNumber: 2,
-    patientId: 'client-1',
-    patientName: 'Rahul Sharma',
-    patientPhone: '9876543210',
-    patientAge: 29,
-    patientGender: 'Male',
-    date: getTodayDateString(),
-    isNextDay: false,
-    reasonForVisit: 'Allergic runny nose, sneezing fits, headache',
-    bookedAt: Date.now() - 35 * 60 * 1000,
-    status: 'waiting',
-  },
-  {
-    id: 'apt-3',
-    tokenNumber: 1,
-    patientId: 'client-3',
-    patientName: 'Kevin Peters',
-    patientPhone: '9822233445',
-    patientAge: 42,
-    patientGender: 'Male',
-    date: getNextDayDateString(),
-    isNextDay: true,
-    reasonForVisit: 'Next-day routine blood pressure follow-up and prescription refill',
-    bookedAt: Date.now() - 20 * 60 * 1000,
-    status: 'waiting',
-  },
-  {
-    id: 'apt-4',
-    tokenNumber: 2,
-    patientId: 'client-4',
-    patientName: 'Sunita Verma',
-    patientPhone: '9833344556',
-    patientAge: 52,
-    patientGender: 'Female',
-    date: getNextDayDateString(),
-    isNextDay: true,
-    reasonForVisit: 'Next-day fasting glucose review and knee pain consultation',
-    bookedAt: Date.now() - 10 * 60 * 1000,
-    status: 'waiting',
-  },
-];
+export const INITIAL_APPOINTMENTS: Appointment[] = [];
 
 // ---------------------------------------------------------------------------
 // FIREBASE REALTIME DATABASE SYNC FUNCTIONS
