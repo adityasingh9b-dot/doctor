@@ -465,233 +465,256 @@ export const DoctorPrescriptionView: React.FC<DoctorPrescriptionViewProps> = ({
         </div>
       </div>
 
-      {/* Prescribed Medicines (Exact user-specified format) */}
-      {/* Requirement: "do not add dummy medicines Amoxicillin + Clavulanic Acid 625mg yourself, leave that space empty, doctor will add himself" */}
-      <div
-        className={`rounded-2xl p-5 border space-y-4 ${
-          isDark ? 'bg-zinc-900 border-zinc-800' : 'bg-white border-slate-200 shadow-xs'
-        }`}
+
+
+
+
+{/* Prescribed Medicines (Exact user-specified format) */}
+{/* Requirement: "do not add dummy medicines Amoxicillin + Clavulanic Acid 625mg yourself, leave that space empty, doctor will add himself" */}
+<div
+  className={`rounded-2xl p-5 border space-y-4 ${
+    isDark ? 'bg-zinc-900 border-zinc-800' : 'bg-white border-slate-200 shadow-xs'
+  }`}
+>
+  <div className="flex items-center justify-between">
+    <div>
+      <h3 className="text-xs font-bold uppercase tracking-wider">
+        3. Prescribed Medicines & Reminder Schedule
+      </h3>
+      <p className={`text-[11px] ${isDark ? 'text-zinc-400' : 'text-slate-500'}`}>
+        Each medicine: Name, Description, Dosage (B/L/D), Food Timing, and Reminder Time
+      </p>
+    </div>
+
+    <button
+      type="button"
+      onClick={handleAddMedicineRow}
+      className="px-3 py-1.5 bg-sky-600 hover:bg-sky-700 text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-xs"
+    >
+      <Plus className="w-3.5 h-3.5" />
+      <span>Add Medicine</span>
+    </button>
+  </div>
+
+  {medicines.length === 0 ? (
+    <div
+      className={`rounded-xl p-6 text-center space-y-2 border border-dashed ${
+        isDark ? 'border-zinc-800 bg-zinc-950/40' : 'border-slate-300 bg-slate-50'
+      }`}
+    >
+      <p className={`text-xs ${isDark ? 'text-zinc-400' : 'text-slate-500'}`}>
+        No medicines added yet. Click &quot;+ Add Medicine&quot; above to prescribe.
+      </p>
+      <button
+        type="button"
+        onClick={handleAddMedicineRow}
+        className="px-4 py-2 bg-sky-600 hover:bg-sky-700 text-white rounded-xl text-xs font-semibold inline-flex items-center gap-1.5 transition-colors shadow-xs"
       >
-        <div className="flex items-center justify-between">
-          <div>
-            <h3 className="text-xs font-bold uppercase tracking-wider">
-              3. Prescribed Medicines & Reminder Schedule
-            </h3>
-            <p className={`text-[11px] ${isDark ? 'text-zinc-400' : 'text-slate-500'}`}>
-              Each medicine: Name, Description, Dosage (B/L/D), Food Timing, and Reminder Time
-            </p>
-          </div>
-
-          <button
-            type="button"
-            onClick={handleAddMedicineRow}
-            className="px-3 py-1.5 bg-sky-600 hover:bg-sky-700 text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-xs"
-          >
-            <Plus className="w-3.5 h-3.5" />
-            <span>Add Medicine</span>
-          </button>
-        </div>
-
-        {medicines.length === 0 ? (
+        <Plus className="w-3.5 h-3.5" />
+        <span>Add First Medicine</span>
+      </button>
+    </div>
+  ) : (
+    <div className="space-y-3.5">
+      {medicines.map((med, index) => (
+        <div
+          key={med.id}
+          className={`rounded-xl p-4 border space-y-3 ${
+            isDark ? 'bg-zinc-950 border-zinc-800' : 'bg-slate-50 border-slate-200'
+          }`}
+        >
           <div
-            className={`rounded-xl p-6 text-center space-y-2 border border-dashed ${
-              isDark ? 'border-zinc-800 bg-zinc-950/40' : 'border-slate-300 bg-slate-50'
+            className={`flex items-center justify-between pb-2 border-b ${
+              isDark ? 'border-zinc-800' : 'border-slate-200'
             }`}
           >
-            <p className={`text-xs ${isDark ? 'text-zinc-400' : 'text-slate-500'}`}>
-              No medicines added yet. Click &quot;+ Add Medicine&quot; above to prescribe.
-            </p>
+            <span className="text-xs font-bold text-sky-600 dark:text-sky-400 flex items-center gap-1.5">
+              <span className="w-5 h-5 rounded-full bg-sky-500/15 flex items-center justify-center text-[10px]">
+                {index + 1}
+              </span>
+              <span>Medicine Item #{index + 1}</span>
+            </span>
+
             <button
               type="button"
-              onClick={handleAddMedicineRow}
-              className="px-4 py-2 bg-sky-600 hover:bg-sky-700 text-white rounded-xl text-xs font-semibold inline-flex items-center gap-1.5 transition-colors shadow-xs"
+              onClick={() => handleRemoveMedicineRow(med.id)}
+              className="text-slate-400 hover:text-rose-500 p-1 transition-colors"
+              title="Remove medicine"
             >
-              <Plus className="w-3.5 h-3.5" />
-              <span>Add First Medicine</span>
+              <Trash2 className="w-4 h-4" />
             </button>
           </div>
-        ) : (
-          <div className="space-y-3.5">
-            {medicines.map((med, index) => (
-              <div
-                key={med.id}
-                className={`rounded-xl p-4 border space-y-3 ${
-                  isDark ? 'bg-zinc-950 border-zinc-800' : 'bg-slate-50 border-slate-200'
+
+          {/* Required: 'Name' textbox & 'Description' textbox */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label
+                className={`block text-xs font-semibold mb-1 ${
+                  isDark ? 'text-zinc-300' : 'text-slate-700'
                 }`}
               >
-                <div
-                  className={`flex items-center justify-between pb-2 border-b ${
-                    isDark ? 'border-zinc-800' : 'border-slate-200'
-                  }`}
+                Name (Medicine & Strength) *
+              </label>
+              <input
+                type="text"
+                required
+                value={med.name}
+                onChange={(e) => handleUpdateMed(med.id, 'name', e.target.value)}
+                placeholder="e.g. Paracetamol 650mg"
+                className={`w-full px-3.5 py-2 rounded-xl text-xs font-medium border focus:outline-none focus:ring-2 focus:ring-sky-500 ${
+                  isDark
+                    ? 'bg-black/50 border-zinc-700 text-white placeholder:text-zinc-600'
+                    : 'bg-white border-slate-300 text-slate-900 placeholder:text-slate-400'
+                }`}
+              />
+            </div>
+
+            <div>
+              <label
+                className={`block text-xs font-semibold mb-1 ${
+                  isDark ? 'text-zinc-300' : 'text-slate-700'
+                }`}
+              >
+                Description & Instructions *
+              </label>
+              <input
+                type="text"
+                value={med.description}
+                onChange={(e) => handleUpdateMed(med.id, 'description', e.target.value)}
+                placeholder="e.g. Take for fever relief. Do not skip."
+                className={`w-full px-3.5 py-2 rounded-xl text-xs font-medium border focus:outline-none focus:ring-2 focus:ring-sky-500 ${
+                  isDark
+                    ? 'bg-black/50 border-zinc-700 text-white placeholder:text-zinc-600'
+                    : 'bg-white border-slate-300 text-slate-900 placeholder:text-slate-400'
+                }`}
+              />
+            </div>
+          </div>
+
+          {/* Required: dosage breakfast/lunch/dinner, before/after select, reminder time, and duration */}
+          <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 pt-1 items-end">
+            {/* Dosage Checkboxes: Breakfast, Lunch, Dinner */}
+            <div>
+              <label
+                className={`block text-[11px] font-semibold mb-1.5 ${
+                  isDark ? 'text-zinc-300' : 'text-slate-700'
+                }`}
+              >
+                Dosage Slots (B / L / D)
+              </label>
+              <div className="flex items-center gap-1.5">
+                {(['breakfast', 'lunch', 'dinner'] as const).map((slot) => {
+                  const isActive = med.dosageSlots[slot];
+                  return (
+                    <button
+                      key={slot}
+                      type="button"
+                      onClick={() => handleToggleDosageSlot(med.id, slot)}
+                      className={`flex-1 py-1.5 px-2 rounded-xl text-xs font-bold capitalize transition-all border ${
+                        isActive
+                          ? 'bg-sky-600 text-white border-sky-600 shadow-xs'
+                          : isDark
+                          ? 'bg-zinc-900 border-zinc-700 text-zinc-400 hover:bg-zinc-800'
+                          : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-100'
+                      }`}
+                    >
+                      {slot === 'breakfast' ? 'Bkfast' : slot}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Before / After options select */}
+            <div>
+              <label
+                className={`block text-[11px] font-semibold mb-1.5 ${
+                  isDark ? 'text-zinc-300' : 'text-slate-700'
+                }`}
+              >
+                Food Timing
+              </label>
+              <select
+                value={med.timing}
+                onChange={(e) => handleUpdateMed(med.id, 'timing', e.target.value as any)}
+                className={`w-full px-3 py-2 rounded-xl text-xs font-medium border focus:outline-none focus:ring-2 focus:ring-sky-500 ${
+                  isDark
+                    ? 'bg-zinc-900 border-zinc-700 text-white'
+                    : 'bg-white border-slate-300 text-slate-900'
+                }`}
+              >
+                <option value="before">Before Food (Khane se pehle)</option>
+                <option value="after">After Food (Khane ke baad)</option>
+              </select>
+            </div>
+
+            {/* Alarm Time pickers with multiple time support */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <label className={`block text-[11px] font-semibold flex items-center gap-1 ${isDark ? 'text-zinc-300' : 'text-slate-700'}`}>
+                  <Clock className="w-3.5 h-3.5 text-amber-500" />
+                  <span>Notification Times</span>
+                </label>
+                <button
+                  type="button"
+                  onClick={() => handleAddMedTime(med.id)}
+                  className="text-[10px] text-sky-500 hover:underline font-semibold"
                 >
-                  <span className="text-xs font-bold text-sky-600 dark:text-sky-400 flex items-center gap-1.5">
-                    <span className="w-5 h-5 rounded-full bg-sky-500/15 flex items-center justify-center text-[10px]">
-                      {index + 1}
-                    </span>
-                    <span>Medicine Item #{index + 1}</span>
-                  </span>
+                  + Add Time
+                </button>
+              </div>
 
-                  <button
-                    type="button"
-                    onClick={() => handleRemoveMedicineRow(med.id)}
-                    className="text-slate-400 hover:text-rose-500 p-1 transition-colors"
-                    title="Remove medicine"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                </div>
-
-                {/* Required: 'Name' textbox & 'Description' textbox */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div>
-                    <label
-                      className={`block text-xs font-semibold mb-1 ${
-                        isDark ? 'text-zinc-300' : 'text-slate-700'
-                      }`}
-                    >
-                      Name (Medicine & Strength) *
-                    </label>
+              <div className="flex flex-wrap gap-2">
+                {med.times?.map((t, tIdx) => (
+                  <div key={tIdx} className="flex items-center gap-1 bg-black/20 p-1.5 rounded-xl border border-zinc-700/50">
                     <input
-                      type="text"
-                      required
-                      value={med.name}
-                      onChange={(e) => handleUpdateMed(med.id, 'name', e.target.value)}
-                      placeholder="e.g. Paracetamol 650mg"
-                      className={`w-full px-3.5 py-2 rounded-xl text-xs font-medium border focus:outline-none focus:ring-2 focus:ring-sky-500 ${
-                        isDark
-                          ? 'bg-black/50 border-zinc-700 text-white placeholder:text-zinc-600'
-                          : 'bg-white border-slate-300 text-slate-900 placeholder:text-slate-400'
+                      type="time"
+                      value={t}
+                      onChange={(e) => handleUpdateMedTime(med.id, tIdx, e.target.value)}
+                      className={`px-2 py-1 rounded-lg text-xs font-mono font-bold border focus:outline-none focus:ring-1 focus:ring-sky-500 ${
+                        isDark ? 'bg-zinc-900 border-zinc-700 text-amber-400' : 'bg-white border-slate-300 text-amber-700'
                       }`}
                     />
-                  </div>
-
-                  <div>
-                    <label
-                      className={`block text-xs font-semibold mb-1 ${
-                        isDark ? 'text-zinc-300' : 'text-slate-700'
-                      }`}
-                    >
-                      Description & Instructions *
-                    </label>
-                    <input
-                      type="text"
-                      value={med.description}
-                      onChange={(e) => handleUpdateMed(med.id, 'description', e.target.value)}
-                      placeholder="e.g. Take for fever relief. Do not skip."
-                      className={`w-full px-3.5 py-2 rounded-xl text-xs font-medium border focus:outline-none focus:ring-2 focus:ring-sky-500 ${
-                        isDark
-                          ? 'bg-black/50 border-zinc-700 text-white placeholder:text-zinc-600'
-                          : 'bg-white border-slate-300 text-slate-900 placeholder:text-slate-400'
-                      }`}
-                    />
-                  </div>
-                </div>
-
-                {/* Required: dosage breakfast/lunch/dinner, before/after select, and reminder time */}
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1 items-end">
-                  {/* Dosage Checkboxes: Breakfast, Lunch, Dinner */}
-                  <div>
-                    <label
-                      className={`block text-[11px] font-semibold mb-1.5 ${
-                        isDark ? 'text-zinc-300' : 'text-slate-700'
-                      }`}
-                    >
-                      Dosage Slots (B / L / D)
-                    </label>
-                    <div className="flex items-center gap-1.5">
-                      {(['breakfast', 'lunch', 'dinner'] as const).map((slot) => {
-                        const isActive = med.dosageSlots[slot];
-                        return (
-                          <button
-                            key={slot}
-                            type="button"
-                            onClick={() => handleToggleDosageSlot(med.id, slot)}
-                            className={`flex-1 py-1.5 px-2 rounded-xl text-xs font-bold capitalize transition-all border ${
-                              isActive
-                                ? 'bg-sky-600 text-white border-sky-600 shadow-xs'
-                                : isDark
-                                ? 'bg-zinc-900 border-zinc-700 text-zinc-400 hover:bg-zinc-800'
-                                : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-100'
-                            }`}
-                          >
-                            {slot === 'breakfast' ? 'Bkfast' : slot}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-
-                  {/* Before / After options select */}
-                  <div>
-                    <label
-                      className={`block text-[11px] font-semibold mb-1.5 ${
-                        isDark ? 'text-zinc-300' : 'text-slate-700'
-                      }`}
-                    >
-                      Food Timing
-                    </label>
-                    <select
-                      value={med.timing}
-                      onChange={(e) => handleUpdateMed(med.id, 'timing', e.target.value as any)}
-                      className={`w-full px-3 py-2 rounded-xl text-xs font-medium border focus:outline-none focus:ring-2 focus:ring-sky-500 ${
-                        isDark
-                          ? 'bg-zinc-900 border-zinc-700 text-white'
-                          : 'bg-white border-slate-300 text-slate-900'
-                      }`}
-                    >
-                      <option value="before">Before Food (Khane se pehle)</option>
-                      <option value="after">After Food (Khane ke baad)</option>
-                    </select>
-                  </div>
-
-                 {/* Alarm Time pickers with multiple time support */}
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <label className={`block text-[11px] font-semibold flex items-center gap-1 ${isDark ? 'text-zinc-300' : 'text-slate-700'}`}>
-                        <Clock className="w-3.5 h-3.5 text-amber-500" />
-                        <span>Notification Times (Alarm Clocks)</span>
-                      </label>
+                    {med.times.length > 1 && (
                       <button
                         type="button"
-                        onClick={() => handleAddMedTime(med.id)}
-                        className="text-[10px] text-sky-500 hover:underline font-semibold"
+                        onClick={() => handleRemoveMedTime(med.id, tIdx)}
+                        className="text-rose-500 hover:text-rose-400 px-1 text-xs font-bold"
+                        title="Remove time slot"
                       >
-                        + Add Time
+                        ×
                       </button>
-                    </div>
-
-                    <div className="flex flex-wrap gap-2">
-                      {med.times?.map((t, tIdx) => (
-                        <div key={tIdx} className="flex items-center gap-1 bg-black/20 p-1.5 rounded-xl border border-zinc-700/50">
-                          <input
-                            type="time"
-                            value={t}
-                            onChange={(e) => handleUpdateMedTime(med.id, tIdx, e.target.value)}
-                            className={`px-2 py-1 rounded-lg text-xs font-mono font-bold border focus:outline-none focus:ring-1 focus:ring-sky-500 ${
-                              isDark ? 'bg-zinc-900 border-zinc-700 text-amber-400' : 'bg-white border-slate-300 text-amber-700'
-                            }`}
-                          />
-                          {med.times.length > 1 && (
-                            <button
-                              type="button"
-                              onClick={() => handleRemoveMedTime(med.id, tIdx)}
-                              className="text-rose-500 hover:text-rose-400 px-1 text-xs font-bold"
-                              title="Remove time slot"
-                            >
-                              ×
-                            </button>
-                          )}
-                        </div>
-                      ))}
-                    </div>
+                    )}
                   </div>
-                  
-                </div>
+                ))}
               </div>
-            ))}
+            </div>
+
+            {/* Duration Days Input */}
+            <div className="space-y-1.5">
+              <label className={`block text-[11px] font-semibold ${isDark ? 'text-zinc-300' : 'text-slate-700'}`}>
+                Duration (Days)
+              </label>
+              <input
+                type="number"
+                min="1"
+                max="90"
+                value={med.durationDays ?? 5}
+                onChange={(e) => handleUpdateMed(med.id, 'durationDays', parseInt(e.target.value) || 1)}
+                className={`w-full px-3 py-2 rounded-xl text-xs font-mono font-bold border focus:outline-none focus:ring-1 focus:ring-sky-500 ${
+                  isDark ? 'bg-zinc-900 border-zinc-700 text-sky-400' : 'bg-white border-slate-300 text-sky-700'
+                }`}
+              />
+            </div>
           </div>
-        )}
-      </div>
+        </div>
+      ))}
+    </div>
+  )}
+</div>
+      
+      
+      
 
       {/* General Advice & Follow-up */}
       <div
