@@ -9,7 +9,6 @@ import {
   AlertTriangle,
   CheckCircle,
   IndianRupee,
-  RotateCcw,
 } from 'lucide-react';
 import { Appointment, QueueStatus, ClientUser } from '../../types';
 import { formatReadableDate, isTimestampToday } from '../../services/dataStore';
@@ -37,9 +36,9 @@ export const DoctorAppointmentsView: React.FC<DoctorAppointmentsViewProps> = ({
   const { theme } = useTheme();
   const isDark = theme === 'dark';
 
-  // Requirement: "by default doctor ki screen ALL appointments tab pr rehni chiye, jis me sab appointments visible ho. no matter what day, and waha se 'next day' and 'today' hatakar aise classification tabs daaalo: 'All', 'Pending', 'Completed'"
   const [activeFilter, setActiveFilter] = useState<'all' | 'pending' | 'completed'>('all');
   const [aptToDelete, setAptToDelete] = useState<Appointment | null>(null);
+  const [aptToComplete, setAptToComplete] = useState<Appointment | null>(null); // State for completion confirmation popup
 
   // Counts
   const pendingCount = appointments.filter((a) => a.status !== 'completed').length;
@@ -59,6 +58,12 @@ export const DoctorAppointmentsView: React.FC<DoctorAppointmentsViewProps> = ({
     if (activeFilter === 'completed') return apt.status === 'completed';
     return true; // 'all'
   });
+  
+  const handleConfirmCompleteAppointment = () => {
+    if (!aptToComplete) return;
+    onUpdateStatus(aptToComplete.id, 'completed');
+    setAptToComplete(null);
+  };
 
   const handleConfirmDeleteAppointment = () => {
     if (!aptToDelete) return;
@@ -280,11 +285,11 @@ export const DoctorAppointmentsView: React.FC<DoctorAppointmentsViewProps> = ({
 
                   {/* Right: Actions */}
                   <div className="flex items-center flex-wrap gap-2 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100 dark:border-zinc-800">
-                    {/* Primary Button: 'Completed' - immediately credits +500 to doctor's today revenue */}
+                    {/* Primary Button: 'Completed' - triggers confirmation box */}
                     {!isCompleted ? (
                       <button
                         type="button"
-                        onClick={() => onUpdateStatus(apt.id, 'completed')}
+                        onClick={() => setAptToComplete(apt)}
                         className="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all shadow-xs active:scale-95"
                         title="Mark Completed (Adds ₹500 to Today's Revenue)"
                       >
@@ -301,14 +306,6 @@ export const DoctorAppointmentsView: React.FC<DoctorAppointmentsViewProps> = ({
                           <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
                           <span>Done (₹500)</span>
                         </span>
-                        <button
-                          type="button"
-                          onClick={() => onUpdateStatus(apt.id, 'waiting')}
-                          className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-zinc-200 hover:bg-slate-100 dark:hover:bg-zinc-800 transition-colors text-xs"
-                          title="Undo to Pending"
-                        >
-                          <RotateCcw className="w-3.5 h-3.5" />
-                        </button>
                       </div>
                     )}
 
@@ -360,6 +357,51 @@ export const DoctorAppointmentsView: React.FC<DoctorAppointmentsViewProps> = ({
           })
         )}
       </div>
+
+      {/* Complete Appointment Confirmation Modal */}
+      {aptToComplete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
+          <div
+            className={`w-full max-w-sm rounded-2xl p-5 border space-y-4 shadow-xl ${
+              isDark ? 'bg-zinc-900 border-zinc-800 text-white' : 'bg-white border-slate-200 text-slate-900'
+            }`}
+          >
+            <div className="flex items-center gap-3 text-emerald-500">
+              <CheckCircle2 className="w-6 h-6 shrink-0" />
+              <h3 className="text-base font-bold">Complete Appointment?</h3>
+            </div>
+
+            <p className={`text-xs ${isDark ? 'text-zinc-300' : 'text-slate-600'}`}>
+              Do you really want to complete the appointment for{' '}
+              <strong>{aptToComplete.patientName}</strong> (Seat #{aptToComplete.tokenNumber})?
+            </p>
+
+            <p className="text-[11px] text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 p-2.5 rounded-xl border border-emerald-500/20">
+              <strong>Note:</strong> Once marked as completed, this action is permanent and cannot be undone back to pending. It will credit +₹500 to today&apos;s earnings.
+            </p>
+
+            <div className="flex items-center justify-end gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => setAptToComplete(null)}
+                className={`px-3.5 py-2 rounded-xl text-xs font-semibold border ${
+                  isDark ? 'border-zinc-700 text-zinc-300 hover:bg-zinc-800' : 'border-slate-300 text-slate-700 hover:bg-slate-100'
+                }`}
+              >
+                Cancel
+              </button>
+
+              <button
+                type="button"
+                onClick={handleConfirmCompleteAppointment}
+                className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-semibold transition-colors shadow-xs"
+              >
+                Yes, Complete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Delete / Cancel Appointment Modal */}
       {aptToDelete && (
