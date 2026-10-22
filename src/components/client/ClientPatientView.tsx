@@ -222,20 +222,37 @@ export const ClientPatientView: React.FC<ClientPatientViewProps> = ({
  
  
  
- const handleSharePrescription = async (rx: Prescription) => {
+const handleSharePrescription = async (rx: Prescription) => {
     try {
-      const shareText = `Prescription #${rx.id.slice(-6)} from ${clinicConfig.doctorName} (${clinicConfig.name})\nDate: ${formatReadableDate(rx.date)}\nMedicines: ${rx.medicines.map(m => m.name).join(', ')}`;
+      // 1. Generate PDF blob using jspdf output format
+      const doc = downloadPrescriptionPDF(rx, { returnPdfInstance: true });
+      if (!doc) {
+        alert('Could not generate PDF for sharing.');
+        return;
+      }
       
-      if (navigator.share) {
+      const pdfBlob = doc.output('blob');
+      const fileName = `Prescription-${rx.id.slice(-6)}.pdf`;
+      const pdfFile = new File([pdfBlob], fileName, { type: 'application/pdf' });
+
+      // 2. Check if file sharing is supported by browser/device
+      if (navigator.canShare && navigator.canShare({ files: [pdfFile] })) {
         await navigator.share({
           title: `Prescription #${rx.id.slice(-6)}`,
-          text: shareText,
+          text: `Official prescription from ${clinicConfig.doctorName} (${clinicConfig.name}) dated ${formatReadableDate(rx.date)}`,
+          files: [pdfFile],
+        });
+      } else if (navigator.share) {
+        // Fallback to text sharing if file sharing is restricted on the current device
+        await navigator.share({
+          title: `Prescription #${rx.id.slice(-6)}`,
+          text: `Prescription #${rx.id.slice(-6)} from ${clinicConfig.doctorName} (${clinicConfig.name})\nDate: ${formatReadableDate(rx.date)}\nMedicines: ${rx.medicines.map(m => m.name).join(', ')}`,
         });
       } else {
-        alert('Sharing is not supported on this browser.');
+        alert('File sharing is not supported on this browser. Please use the Download button instead.');
       }
     } catch (error) {
-      console.log('Error sharing prescription:', error);
+      console.log('Error sharing prescription PDF:', error);
     }
   };
  
