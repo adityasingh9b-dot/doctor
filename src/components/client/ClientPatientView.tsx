@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+
 import {
   AlertTriangle,
   CalendarCheck,
@@ -14,6 +15,7 @@ import {
   LogOut,
   MapPin,
   Pill,
+  Share2, // <-- Yeh add karein
   Sparkles,
   Stethoscope,
   Trash2,
@@ -21,6 +23,7 @@ import {
   Users,
   Volume2,
 } from 'lucide-react';
+
 import {
   ClientUser,
   Appointment,
@@ -68,6 +71,9 @@ const getSmartBookingDateString = (): string => {
   
   return `${year}-${month}-${day}`;
 };
+
+
+
 
 
 // ---- Small pure helpers (presentation only) ----
@@ -212,6 +218,30 @@ export const ClientPatientView: React.FC<ClientPatientViewProps> = ({
   ];
 
   // ---- Handlers (unchanged behaviour) ----
+  
+ 
+ 
+ 
+ const handleSharePrescription = async (rx: Prescription) => {
+    try {
+      const shareText = `Prescription #${rx.id.slice(-6)} from ${clinicConfig.doctorName} (${clinicConfig.name})\nDate: ${formatReadableDate(rx.date)}\nMedicines: ${rx.medicines.map(m => m.name).join(', ')}`;
+      
+      if (navigator.share) {
+        await navigator.share({
+          title: `Prescription #${rx.id.slice(-6)}`,
+          text: shareText,
+        });
+      } else {
+        alert('Sharing is not supported on this browser.');
+      }
+    } catch (error) {
+      console.log('Error sharing prescription:', error);
+    }
+  };
+ 
+ 
+ 
+  
   const handleConfirmNextDayBooking = (e: React.FormEvent) => {
     e.preventDefault();
     setBookingError('');
@@ -880,7 +910,9 @@ export const ClientPatientView: React.FC<ClientPatientViewProps> = ({
           </>
         )}
 
-        {/* ===================== RECORDS ===================== */}
+
+
+{/* ===================== RECORDS ===================== */}
         {activeTab === 'records' && (
           <>
             {pageHeader('My Health Records')}
@@ -1026,14 +1058,45 @@ export const ClientPatientView: React.FC<ClientPatientViewProps> = ({
                                 </div>
                               )}
 
-                              <button
-                                type="button"
-                                onClick={() => downloadPrescriptionPDF(rx)}
-                                className="w-full py-3 rounded-xl text-sm font-semibold bg-green-600 hover:bg-green-700 text-white flex items-center justify-center gap-2 shadow-sm transition-colors"
-                              >
-                                <Download className="w-4 h-4" />
-                                <span>Download Official Signed PDF with Seal</span>
-                              </button>
+                              {/* Download & Share Action Buttons */}
+                              <div className="grid grid-cols-2 gap-2">
+                                <button
+                                  type="button"
+                                  onClick={() => downloadPrescriptionPDF(rx)}
+                                  className="py-3 px-3 rounded-xl text-xs font-semibold bg-green-600 hover:bg-green-700 text-white flex items-center justify-center gap-1.5 shadow-sm transition-colors"
+                                >
+                                  <Download className="w-4 h-4 shrink-0" />
+                                  <span>Download PDF</span>
+                                </button>
+
+                                <button
+                                  type="button"
+                                  onClick={async () => {
+                                    try {
+                                      const shareText = `Prescription #${rx.id.slice(-6)} from ${clinicConfig.doctorName} (${clinicConfig.name})\nDate: ${formatReadableDate(rx.date)}\nMedicines: ${rx.medicines.map(m => m.name).join(', ')}`;
+                                      if (navigator.share) {
+                                        await navigator.share({
+                                          title: `Prescription #${rx.id.slice(-6)}`,
+                                          text: shareText,
+                                        });
+                                      } else {
+                                        alert('Sharing is not supported on this browser.');
+                                      }
+                                    } catch (err) {
+                                      console.log('Error sharing:', err);
+                                    }
+                                  }}
+                                  className={`py-3 px-3 rounded-xl text-xs font-semibold border flex items-center justify-center gap-1.5 shadow-sm transition-colors ${
+                                    isDark
+                                      ? 'bg-zinc-800 border-zinc-700 text-green-400 hover:bg-zinc-700'
+                                      : 'bg-white border-slate-300 text-green-700 hover:bg-slate-50'
+                                  }`}
+                                >
+                                  <Share2 className="w-4 h-4 shrink-0" />
+                                  <span>Share Prescription</span>
+                                </button>
+                              </div>
+
                             </div>
                           )}
                         </div>
@@ -1045,6 +1108,8 @@ export const ClientPatientView: React.FC<ClientPatientViewProps> = ({
             </section>
           </>
         )}
+
+
 
         {/* ===================== ACCOUNT ===================== */}
         {activeTab === 'account' && (
