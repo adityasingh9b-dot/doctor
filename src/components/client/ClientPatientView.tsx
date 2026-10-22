@@ -1131,28 +1131,10 @@ const handleSharePrescription = async (rx: Prescription) => {
                                 </button>
 
                                 <button
-                                  type="button"
-                                  onClick={async () => {
-                                    try {
-                                      const shareText = `Prescription #${rx.id.slice(-6)} from ${clinicConfig.doctorName} (${clinicConfig.name})\nDate: ${formatReadableDate(rx.date)}\nMedicines: ${rx.medicines.map(m => m.name).join(', ')}`;
-                                      if (navigator.share) {
-                                        await navigator.share({
-                                          title: `Prescription #${rx.id.slice(-6)}`,
-                                          text: shareText,
-                                        });
-                                      } else {
-                                        alert('Sharing is not supported on this browser.');
-                                      }
-                                    } catch (err) {
-                                      console.log('Error sharing:', err);
-                                    }
-                                  }}
-                                  className={`py-3 px-3 rounded-xl text-xs font-semibold border flex items-center justify-center gap-1.5 shadow-sm transition-colors ${
-                                    isDark
-                                      ? 'bg-zinc-800 border-zinc-700 text-green-400 hover:bg-zinc-700'
-                                      : 'bg-white border-slate-300 text-green-700 hover:bg-slate-50'
-                                  }`}
-                                >
+  type="button"
+  onClick={() => handleSharePrescription(rx)}
+  className={`py-3 px-3 rounded-xl ...`}
+>
                                   <Share2 className="w-4 h-4 shrink-0" />
                                   <span>Share Prescription</span>
                                 </button>
