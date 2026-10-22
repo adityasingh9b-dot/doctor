@@ -8,7 +8,7 @@ import {
   Trash2,
   AlertTriangle,
   CheckCircle,
-  IndianRupee,
+  Eye,
 } from 'lucide-react';
 import { Appointment, QueueStatus, ClientUser } from '../../types';
 import { formatReadableDate, isTimestampToday } from '../../services/dataStore';
@@ -20,6 +20,7 @@ interface DoctorAppointmentsViewProps {
   onUpdateStatus: (id: string, status: QueueStatus) => void;
   onDeleteAppointment: (id: string) => void;
   onSelectClientForPrescription: (client: ClientUser) => void;
+  onViewPrescriptionForClient?: (client: ClientUser) => void; // <-- Added callback for View Rx mode
   prescribedAlertToast?: string | null;
   onClearPrescribedAlert?: () => void;
 }
@@ -30,6 +31,7 @@ export const DoctorAppointmentsView: React.FC<DoctorAppointmentsViewProps> = ({
   onUpdateStatus,
   onDeleteAppointment,
   onSelectClientForPrescription,
+  onViewPrescriptionForClient,
   prescribedAlertToast,
   onClearPrescribedAlert,
 }) => {
@@ -38,7 +40,7 @@ export const DoctorAppointmentsView: React.FC<DoctorAppointmentsViewProps> = ({
 
   const [activeFilter, setActiveFilter] = useState<'all' | 'pending' | 'completed'>('all');
   const [aptToDelete, setAptToDelete] = useState<Appointment | null>(null);
-  const [aptToComplete, setAptToComplete] = useState<Appointment | null>(null); // State for completion confirmation popup
+  const [aptToComplete, setAptToComplete] = useState<Appointment | null>(null);
 
   // Counts
   const pendingCount = appointments.filter((a) => a.status !== 'completed').length;
@@ -50,13 +52,12 @@ export const DoctorAppointmentsView: React.FC<DoctorAppointmentsViewProps> = ({
       a.status === 'completed' &&
       (isTimestampToday(a.completedAt) || (!a.completedAt && isTimestampToday(a.date)))
   );
-  const calculatedTodayEarnings = todayCompletedAppointments.length * 500;
 
   // Filter appointments
   const filteredAppointments = appointments.filter((apt) => {
     if (activeFilter === 'pending') return apt.status !== 'completed';
     if (activeFilter === 'completed') return apt.status === 'completed';
-    return true; // 'all'
+    return true;
   });
   
   const handleConfirmCompleteAppointment = () => {
@@ -110,7 +111,7 @@ export const DoctorAppointmentsView: React.FC<DoctorAppointmentsViewProps> = ({
           </p>
         </div>
 
-        {/* Classification Filter Pills: 'All', 'Pending', 'Completed' */}
+        {/* Classification Filter Pills */}
         <div
           className={`p-1 rounded-xl border flex items-center gap-1 text-xs font-semibold ${
             isDark ? 'bg-zinc-900 border-zinc-800' : 'bg-white border-slate-200 shadow-xs'
@@ -172,13 +173,23 @@ export const DoctorAppointmentsView: React.FC<DoctorAppointmentsViewProps> = ({
               {activeFilter === 'pending'
                 ? 'No pending consultations in the queue.'
                 : activeFilter === 'completed'
-                ? 'No completed appointments yet. Click "Completed" on an appointment to mark it done and add +₹500.'
+                ? 'No completed appointments yet.'
                 : 'No appointments scheduled.'}
             </p>
           </div>
         ) : (
           filteredAppointments.map((apt) => {
             const clientObj = clients.find((c) => c.phone.replace(/\D/g, '') === apt.patientPhone.replace(/\D/g, ''));
+            const targetClient: ClientUser = clientObj || {
+              id: apt.patientId || `client-${apt.patientPhone}`,
+              name: apt.patientName,
+              phone: apt.patientPhone,
+              passkey: '1111',
+              age: apt.patientAge || 28,
+              gender: apt.patientGender || 'Male',
+              registeredAt: Date.now(),
+            };
+
             const dateDDMMYYYY = formatReadableDate(apt.date);
             const isCompleted = apt.status === 'completed';
 
@@ -217,7 +228,6 @@ export const DoctorAppointmentsView: React.FC<DoctorAppointmentsViewProps> = ({
                       <div className="flex flex-wrap items-center gap-2">
                         <h3 className="text-sm font-bold">{apt.patientName}</h3>
 
-                        {/* Date badge formatted as DD/MM/YYYY */}
                         <span
                           className={`text-[10px] px-2.5 py-0.5 rounded-full font-bold font-mono tracking-wide ${
                             isDark
@@ -228,7 +238,6 @@ export const DoctorAppointmentsView: React.FC<DoctorAppointmentsViewProps> = ({
                           Date: {dateDDMMYYYY}
                         </span>
 
-                        {/* Status badge */}
                         <span
                           className={`text-[10px] px-2 py-0.5 rounded-full font-bold uppercase ${
                             isCompleted
@@ -283,18 +292,13 @@ export const DoctorAppointmentsView: React.FC<DoctorAppointmentsViewProps> = ({
                     </div>
                   </div>
 
-
-
-
-{/* Right: Actions */}
+                  {/* Right: Actions */}
                   <div className="flex items-center flex-wrap gap-2 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100 dark:border-zinc-800">
-                    {/* Primary Button: 'Completed' */}
                     {!isCompleted ? (
                       <button
                         type="button"
                         onClick={() => setAptToComplete(apt)}
                         className="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all shadow-xs active:scale-95"
-                        title="Mark Completed (Adds ₹500 to Today's Revenue)"
                       >
                         <CheckCircle2 className="w-3.5 h-3.5" />
                         <span>Completed</span>
@@ -312,35 +316,42 @@ export const DoctorAppointmentsView: React.FC<DoctorAppointmentsViewProps> = ({
                       </div>
                     )}
 
-                    {/* Prescription Button: Pending pr 'Issue Rx', Completed pr 'View Rx' */}
-                    <button
-                      type="button"
-                      onClick={() => {
-                        if (clientObj) {
-                          onSelectClientForPrescription(clientObj);
-                        } else {
-                          onSelectClientForPrescription({
-                            id: apt.patientId || `client-${apt.patientPhone}`,
-                            name: apt.patientName,
-                            phone: apt.patientPhone,
-                            passkey: '1111',
-                            age: apt.patientAge || 28,
-                            gender: apt.patientGender || 'Male',
-                            registeredAt: Date.now(),
-                          });
-                        }
-                      }}
-                      className={`px-3 py-1.5 rounded-xl text-xs font-semibold border flex items-center gap-1.5 transition-colors ${
-                        isDark
-                          ? 'bg-zinc-800 border-zinc-700 text-zinc-200 hover:bg-zinc-700'
-                          : 'bg-slate-100 border-slate-200 text-slate-700 hover:bg-slate-200'
-                      }`}
-                    >
-                      <FileText className="w-3.5 h-3.5 text-green-500" />
-                      <span>{isCompleted ? 'View Rx' : 'Issue Rx'}</span>
-                    </button>
+                    {/* Pending state: Issue Rx (opens creation form) */}
+                    {/* Completed state: View Rx (opens patient prescription history) */}
+                    {isCompleted ? (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (onViewPrescriptionForClient) {
+                            onViewPrescriptionForClient(targetClient);
+                          } else {
+                            onSelectClientForPrescription(targetClient);
+                          }
+                        }}
+                        className={`px-3 py-1.5 rounded-xl text-xs font-semibold border flex items-center gap-1.5 transition-colors ${
+                          isDark
+                            ? 'bg-emerald-950/40 border-emerald-800/60 text-emerald-300 hover:bg-emerald-900/50'
+                            : 'bg-emerald-50 border-emerald-200 text-emerald-800 hover:bg-emerald-100'
+                        }`}
+                      >
+                        <Eye className="w-3.5 h-3.5 text-emerald-500" />
+                        <span>View Rx</span>
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => onSelectClientForPrescription(targetClient)}
+                        className={`px-3 py-1.5 rounded-xl text-xs font-semibold border flex items-center gap-1.5 transition-colors ${
+                          isDark
+                            ? 'bg-zinc-800 border-zinc-700 text-zinc-200 hover:bg-zinc-700'
+                            : 'bg-slate-100 border-slate-200 text-slate-700 hover:bg-slate-200'
+                        }`}
+                      >
+                        <FileText className="w-3.5 h-3.5 text-green-500" />
+                        <span>Issue Rx</span>
+                      </button>
+                    )}
 
-                    {/* Delete Appointment Button */}
                     <button
                       type="button"
                       onClick={() => setAptToDelete(apt)}
@@ -349,15 +360,10 @@ export const DoctorAppointmentsView: React.FC<DoctorAppointmentsViewProps> = ({
                           ? 'border-zinc-800 text-zinc-400 hover:text-rose-400 hover:bg-rose-950/30'
                           : 'border-slate-200 text-slate-500 hover:text-rose-600 hover:bg-rose-50'
                       }`}
-                      title="Cancel / Delete Appointment (Shifts lower seats up)"
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>
                   </div>
-
-
-                  
-                  
                 </div>
               </div>
             );
@@ -365,7 +371,7 @@ export const DoctorAppointmentsView: React.FC<DoctorAppointmentsViewProps> = ({
         )}
       </div>
 
-      {/* Complete Appointment Confirmation Modal */}
+      {/* Complete Confirmation Modal */}
       {aptToComplete && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
           <div
@@ -381,10 +387,6 @@ export const DoctorAppointmentsView: React.FC<DoctorAppointmentsViewProps> = ({
             <p className={`text-xs ${isDark ? 'text-zinc-300' : 'text-slate-600'}`}>
               Do you really want to complete the appointment for{' '}
               <strong>{aptToComplete.patientName}</strong> (Seat #{aptToComplete.tokenNumber})?
-            </p>
-
-            <p className="text-[11px] text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 p-2.5 rounded-xl border border-emerald-500/20">
-              <strong>Note:</strong> Once marked as completed, this action is permanent and cannot be undone back to pending. It will credit +₹500 to today&apos;s earnings.
             </p>
 
             <div className="flex items-center justify-end gap-2 pt-2">
@@ -410,7 +412,7 @@ export const DoctorAppointmentsView: React.FC<DoctorAppointmentsViewProps> = ({
         </div>
       )}
 
-      {/* Delete / Cancel Appointment Modal */}
+      {/* Delete Confirmation Modal */}
       {aptToDelete && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
           <div
@@ -427,10 +429,6 @@ export const DoctorAppointmentsView: React.FC<DoctorAppointmentsViewProps> = ({
               Are you sure you want to cancel the appointment for{' '}
               <strong>{aptToDelete.patientName}</strong> (Seat #{aptToDelete.tokenNumber}) on{' '}
               <strong>{formatReadableDate(aptToDelete.date)}</strong>?
-            </p>
-
-            <p className="text-[11px] text-amber-600 dark:text-amber-400 bg-amber-500/10 p-2.5 rounded-xl border border-amber-500/20">
-              <strong>Strict FCFS Queue Rule:</strong> Deleting this appointment will immediately shift all subsequent patients forward to earlier seat numbers. If this appointment was completed today, its ₹500 will be removed from today&apos;s earnings.
             </p>
 
             <div className="flex items-center justify-end gap-2 pt-2">
