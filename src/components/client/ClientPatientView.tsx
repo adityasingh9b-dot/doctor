@@ -76,11 +76,9 @@ const toTime = (d: string | number): number => {
   return Number.isNaN(t) ? 0 : t;
 };
 
-// "Oct'26" style month label used to group records
+// Full date label used to group records
 const getMonthLabel = (d: string | number): string => {
-  const dt = new Date(d);
-  if (Number.isNaN(dt.getTime())) return 'Earlier';
-  return `${dt.toLocaleString('en-US', { month: 'short' })}'${String(dt.getFullYear()).slice(-2)}`;
+  return formatReadableDate(d);
 };
 
 const formatMinutes = (m: number): string =>
@@ -119,10 +117,11 @@ export const ClientPatientView: React.FC<ClientPatientViewProps> = ({
     : new Date().toTimeString().slice(0, 5);
 
   const [bookingTime, setBookingTime] = useState(calculatedDefaultTime);
-  
-  
-  
-  
+
+  // Add this useEffect so time updates dynamically when bookingDate changes
+  useEffect(() => {
+    setBookingTime(calculatedDefaultTime);
+  }, [bookingDate, appointments]);
   
   const [bookingSuccessToast, setBookingSuccessToast] = useState('');
   const [bookingError, setBookingError] = useState('');
@@ -776,8 +775,8 @@ export const ClientPatientView: React.FC<ClientPatientViewProps> = ({
                     />
                     
                     <p className={`text-xs mt-1.5 ${ui.faint}`}>
-                      {lastAppointment ? 'Automatically set to 15 mins after the last booked patient.' : 'Set to current time as no patients are in queue.'}
-                    </p>
+  {lastAppointment ? `Next available time: ${calculatedDefaultTime}` : `Current default time: ${calculatedDefaultTime}`}
+</p>
                   </div>
 
                   <div>
