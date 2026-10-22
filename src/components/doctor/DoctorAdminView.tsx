@@ -162,7 +162,7 @@ export const DoctorAdminView: React.FC<DoctorAdminViewProps> = ({
             onClick={() => setActiveTab('appointments')}
             className={`flex-1 py-2.5 rounded-xl flex items-center justify-center gap-2 transition-all ${
               activeTab === 'appointments'
-                ? 'bg-sky-600 text-white shadow-xs font-bold'
+                ? 'bg-green-600 text-white shadow-xs font-bold'
                 : isDark
                 ? 'text-zinc-400 hover:text-white'
                 : 'text-slate-600 hover:text-slate-900'
@@ -179,7 +179,7 @@ export const DoctorAdminView: React.FC<DoctorAdminViewProps> = ({
             onClick={() => setActiveTab('clients')}
             className={`flex-1 py-2.5 rounded-xl flex items-center justify-center gap-2 transition-all ${
               activeTab === 'clients'
-                ? 'bg-sky-600 text-white shadow-xs font-bold'
+                ? 'bg-green-600 text-white shadow-xs font-bold'
                 : isDark
                 ? 'text-zinc-400 hover:text-white'
                 : 'text-slate-600 hover:text-slate-900'
@@ -196,7 +196,7 @@ export const DoctorAdminView: React.FC<DoctorAdminViewProps> = ({
             onClick={() => setActiveTab('prescribe')}
             className={`flex-1 py-2.5 rounded-xl flex items-center justify-center gap-2 transition-all ${
               activeTab === 'prescribe'
-                ? 'bg-sky-600 text-white shadow-xs font-bold'
+                ? 'bg-green-600 text-white shadow-xs font-bold'
                 : isDark
                 ? 'text-zinc-400 hover:text-white'
                 : 'text-slate-600 hover:text-slate-900'
@@ -212,7 +212,7 @@ export const DoctorAdminView: React.FC<DoctorAdminViewProps> = ({
             onClick={() => setActiveTab('overview')}
             className={`flex-1 py-2.5 rounded-xl flex items-center justify-center gap-2 transition-all ${
               activeTab === 'overview'
-                ? 'bg-sky-600 text-white shadow-xs font-bold'
+                ? 'bg-green-600 text-white shadow-xs font-bold'
                 : isDark
                 ? 'text-zinc-400 hover:text-white'
                 : 'text-slate-600 hover:text-slate-900'
@@ -265,7 +265,7 @@ export const DoctorAdminView: React.FC<DoctorAdminViewProps> = ({
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
               <div>
                 <h2 className="text-base sm:text-lg font-bold tracking-tight flex items-center gap-2">
-                  <Activity className="w-5 h-5 text-sky-500" />
+                  <Activity className="w-5 h-5 text-green-500" />
                   <span>Clinic Health & OPD Overview</span>
                 </h2>
                 <p className={`text-xs ${isDark ? 'text-zinc-400' : 'text-slate-500'}`}>
@@ -312,22 +312,22 @@ export const DoctorAdminView: React.FC<DoctorAdminViewProps> = ({
               <div
                 className={`rounded-2xl p-4 border space-y-1.5 transition-all ${
                   isDark
-                    ? 'bg-sky-950/20 border-sky-800/40 text-sky-100'
-                    : 'bg-sky-50/70 border-sky-200 text-sky-950'
+                    ? 'bg-green-950/20 border-green-800/40 text-green-100'
+                    : 'bg-green-50/70 border-green-200 text-green-950'
                 }`}
               >
                 <div className="flex items-center justify-between">
-                  <span className="text-[11px] font-semibold text-sky-600 dark:text-sky-400">
+                  <span className="text-[11px] font-semibold text-green-600 dark:text-green-400">
                     Today&apos;s Patients
                   </span>
-                  <div className="w-6 h-6 rounded-lg bg-sky-500/20 text-sky-600 dark:text-sky-400 flex items-center justify-center">
+                  <div className="w-6 h-6 rounded-lg bg-green-500/20 text-green-600 dark:text-green-400 flex items-center justify-center">
                     <Users className="w-3.5 h-3.5" />
                   </div>
                 </div>
-                <div className="text-2xl sm:text-3xl font-black tracking-tight text-sky-600 dark:text-sky-400">
+                <div className="text-2xl sm:text-3xl font-black tracking-tight text-green-600 dark:text-green-400">
                   {todayPatientsCount}
                 </div>
-                <span className="text-[10px] text-sky-700/80 dark:text-sky-300/80 block font-medium">
+                <span className="text-[10px] text-green-700/80 dark:text-green-300/80 block font-medium">
                   {todayCompletedCount} done • {todayWaitingCount} waiting
                 </span>
               </div>
@@ -342,12 +342,12 @@ export const DoctorAdminView: React.FC<DoctorAdminViewProps> = ({
                   <span className={`text-[11px] font-semibold ${isDark ? 'text-zinc-400' : 'text-slate-500'}`}>
                     Next-Day Queue
                   </span>
-                  <Calendar className="w-4 h-4 text-sky-500" />
+                  <Calendar className="w-4 h-4 text-green-500" />
                 </div>
                 <div className="text-2xl sm:text-3xl font-black">
                   {nextDayCount}
                 </div>
-                <span className="text-[10px] text-sky-600 dark:text-sky-400 block font-medium">
+                <span className="text-[10px] text-green-600 dark:text-green-400 block font-medium">
                   FCFS Queued Seats
                 </span>
               </div>
@@ -407,7 +407,7 @@ export const DoctorAdminView: React.FC<DoctorAdminViewProps> = ({
                 <div className="text-2xl sm:text-3xl font-black">
                   {clients.length}
                 </div>
-                <span className="text-[10px] text-sky-600 dark:text-sky-400 block font-medium">
+                <span className="text-[10px] text-green-600 dark:text-green-400 block font-medium">
                   Registered Clients
                 </span>
               </div>
@@ -459,7 +459,7 @@ export const DoctorAdminView: React.FC<DoctorAdminViewProps> = ({
                 isDark ? 'bg-zinc-900 border-zinc-800' : 'bg-white border-slate-200'
               }`}
             >
-              <h3 className="text-xs font-bold uppercase tracking-wider text-sky-600 dark:text-sky-400">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-green-600 dark:text-green-400">
                 Clinic Operations & Rules Summary
               </h3>
               <ul className={`text-xs space-y-1.5 list-disc pl-4 ${isDark ? 'text-zinc-300' : 'text-slate-600'}`}>

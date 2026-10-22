@@ -15,7 +15,7 @@ export const DoctorHeader: React.FC<DoctorHeaderProps> = ({ onLogout, onOpenFire
 
   return (
     <header
-      className={`sticky top-0 z-30 border-b px-4 py-3 sm:px-6 transition-colors ${
+      className={`sticky top-0 z-30 border-b px-4 py-3 sm:px-6 shadow-sm transition-colors ${
         isDark
           ? 'bg-zinc-950/90 border-zinc-800 text-white backdrop-blur-md'
           : 'bg-white/90 border-slate-200 text-slate-900 backdrop-blur-md'
@@ -24,7 +24,7 @@ export const DoctorHeader: React.FC<DoctorHeaderProps> = ({ onLogout, onOpenFire
       <div className="max-w-5xl mx-auto flex items-center justify-between gap-3">
         {/* Doctor Info */}
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-sky-600 text-white flex items-center justify-center shadow-xs shrink-0">
+          <div className="w-10 h-10 rounded-xl bg-green-600 text-white flex items-center justify-center shadow-xs shrink-0">
             <Stethoscope className="w-5 h-5" />
           </div>
           <div>
@@ -32,7 +32,7 @@ export const DoctorHeader: React.FC<DoctorHeaderProps> = ({ onLogout, onOpenFire
               <h1 className="text-sm sm:text-base font-bold tracking-tight">
                 {DOCTOR_ADMIN.name}
               </h1>
-              <span className="px-2 py-0.5 rounded-md bg-sky-500/15 text-sky-600 dark:text-sky-400 text-[10px] font-bold uppercase">
+              <span className="px-2 py-0.5 rounded-md bg-green-500/15 text-green-600 dark:text-green-400 text-[10px] font-bold uppercase">
                 DOCTOR ADMIN
               </span>
             </div>
@@ -42,7 +42,7 @@ export const DoctorHeader: React.FC<DoctorHeaderProps> = ({ onLogout, onOpenFire
               }`}
             >
               <span className="flex items-center gap-1 font-mono">
-                <Phone className="w-3 h-3 text-sky-500" />
+                <Phone className="w-3 h-3 text-green-500" />
                 <span>{DOCTOR_ADMIN.phone}</span>
               </span>
               <span>•</span>
@@ -56,9 +56,6 @@ export const DoctorHeader: React.FC<DoctorHeaderProps> = ({ onLogout, onOpenFire
 
         {/* Action Controls */}
         <div className="flex items-center gap-2">
-          {/* Firebase RTDB & FCM Button */}
-          
-
           {/* Theme Toggle Button */}
           <ThemeToggle />
 

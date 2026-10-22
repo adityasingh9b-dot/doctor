@@ -2,29 +2,35 @@
 
 @layer base {
   :root {
-    --bg-main: #f8fafc;
+    --bg-main: #f7faf8;
     --bg-surface: #ffffff;
-    --bg-subtle: #f1f5f9;
-    --border-color: #e2e8f0;
-    --border-subtle: #edf2f7;
+    --bg-subtle: #f0f6f2;
+    --border-color: #e1e8e3;
+    --border-subtle: #edf3ef;
     --text-primary: #0f172a;
     --text-secondary: #475569;
     --text-muted: #64748b;
-    --accent: #0284c7;
-    --accent-hover: #0369a1;
+    --accent: #16a34a;
+    --accent-hover: #15803d;
+    --accent-subtle: #f0fdf4;
+    --accent-subtle-border: #bbf7d0;
+    --shadow-card: 0 1px 2px rgba(15, 23, 42, 0.04), 0 1px 3px rgba(15, 23, 42, 0.06);
   }
 
   .dark {
     --bg-main: #000000;
-    --bg-surface: #121214;
-    --bg-subtle: #1c1c1f;
-    --border-color: #27272a;
-    --border-subtle: #1e1e24;
+    --bg-surface: #121412;
+    --bg-subtle: #191c19;
+    --border-color: #27302a;
+    --border-subtle: #1e221f;
     --text-primary: #f4f4f5;
     --text-secondary: #d4d4d8;
     --text-muted: #a1a1aa;
-    --accent: #0284c7;
-    --accent-hover: #38bdf8;
+    --accent: #22c55e;
+    --accent-hover: #4ade80;
+    --accent-subtle: #0f2317;
+    --accent-subtle-border: #16532e;
+    --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.3), 0 1px 3px rgba(0, 0, 0, 0.4);
   }
 
   body {
@@ -44,6 +50,7 @@
   .app-card {
     background-color: var(--bg-surface);
     border: 1px solid var(--border-color);
+    box-shadow: var(--shadow-card);
   }
 
   .app-subtle {
@@ -52,18 +59,18 @@
   }
 
   .accent-btn {
-    background-color: #0284c7;
+    background-color: var(--accent);
     color: #ffffff;
   }
   .accent-btn:hover {
-    background-color: #0369a1;
+    background-color: var(--accent-hover);
   }
 
   .dark .accent-btn {
-    background-color: #0284c7;
-    color: #ffffff;
+    background-color: var(--accent);
+    color: #000000;
   }
   .dark .accent-btn:hover {
-    background-color: #0369a1;
+    background-color: var(--accent-hover);
   }
 }

@@ -203,7 +203,7 @@ export const ClientPatientView: React.FC<ClientPatientViewProps> = ({
       >
         <div className="max-w-xl mx-auto flex items-center justify-between gap-3">
           <div className="flex items-center gap-2.5">
-            <div className="w-10 h-10 rounded-xl bg-sky-600 text-white flex items-center justify-center shadow-xs shrink-0 font-bold">
+            <div className="w-10 h-10 rounded-xl bg-green-600 text-white flex items-center justify-center shadow-xs shrink-0 font-bold">
               <Stethoscope className="w-5 h-5" />
             </div>
             <div>
@@ -240,73 +240,6 @@ export const ClientPatientView: React.FC<ClientPatientViewProps> = ({
 
       {/* Main Content Area (Natural fit for both mobile & desktop) */}
       <main className="flex-1 max-w-xl w-full mx-auto p-4 sm:p-6 pb-24 space-y-4">
-        {/* Navigation Menu Pills */}
-        <div
-          className={`p-1.5 rounded-2xl border flex items-center justify-around text-xs font-semibold ${
-            isDark ? 'bg-zinc-900/90 border-zinc-800' : 'bg-white border-slate-200 shadow-xs'
-          }`}
-        >
-          <button
-            type="button"
-            onClick={() => setActiveTab('token')}
-            className={`flex-1 py-2 rounded-xl flex items-center justify-center gap-1.5 transition-all ${
-              activeTab === 'token'
-                ? 'bg-sky-600 text-white font-bold shadow-xs'
-                : isDark
-                ? 'text-zinc-400 hover:text-white'
-                : 'text-slate-600 hover:text-slate-900'
-            }`}
-          >
-            <Ticket className="w-3.5 h-3.5" />
-            <span>My Seat</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setActiveTab('book')}
-            className={`flex-1 py-2 rounded-xl flex items-center justify-center gap-1.5 transition-all ${
-              activeTab === 'book'
-                ? 'bg-sky-600 text-white font-bold shadow-xs'
-                : isDark
-                ? 'text-zinc-400 hover:text-white'
-                : 'text-slate-600 hover:text-slate-900'
-            }`}
-          >
-            <CalendarPlus className="w-3.5 h-3.5" />
-            <span>Book Next Day</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setActiveTab('prescriptions')}
-            className={`flex-1 py-2 rounded-xl flex items-center justify-center gap-1.5 transition-all ${
-              activeTab === 'prescriptions'
-                ? 'bg-sky-600 text-white font-bold shadow-xs'
-                : isDark
-                ? 'text-zinc-400 hover:text-white'
-                : 'text-slate-600 hover:text-slate-900'
-            }`}
-          >
-            <FileText className="w-3.5 h-3.5" />
-            <span>Rx & PDF</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setActiveTab('reminders')}
-            className={`flex-1 py-2 rounded-xl flex items-center justify-center gap-1.5 transition-all ${
-              activeTab === 'reminders'
-                ? 'bg-sky-600 text-white font-bold shadow-xs'
-                : isDark
-                ? 'text-zinc-400 hover:text-white'
-                : 'text-slate-600 hover:text-slate-900'
-            }`}
-          >
-            <Bell className="w-3.5 h-3.5" />
-            <span>Alarms</span>
-          </button>
-        </div>
-
         {bookingSuccessToast && (
           <div
             className={`p-3.5 rounded-xl text-xs flex items-center justify-between gap-2 border ${
@@ -339,7 +272,7 @@ export const ClientPatientView: React.FC<ClientPatientViewProps> = ({
                 }`}
               >
                 <div className="space-y-1">
-                  <span className="text-[11px] font-bold uppercase tracking-wider text-sky-600 dark:text-sky-400">
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-green-600 dark:text-green-400">
                     FCFS Queued Appointment
                   </span>
                   <h2 className={`text-sm font-semibold ${isDark ? 'text-zinc-300' : 'text-slate-700'}`}>
@@ -349,7 +282,7 @@ export const ClientPatientView: React.FC<ClientPatientViewProps> = ({
 
                 {/* Big Token Number Card */}
                 <div className="py-1">
-                  <div className="w-28 h-28 mx-auto bg-sky-600 rounded-2xl flex flex-col items-center justify-center text-white shadow-sm">
+                  <div className="w-28 h-28 mx-auto bg-green-600 rounded-2xl flex flex-col items-center justify-center text-white shadow-sm">
                     <span className="text-[10px] uppercase font-bold tracking-widest opacity-80">
                       Your Seat
                     </span>
@@ -381,7 +314,7 @@ export const ClientPatientView: React.FC<ClientPatientViewProps> = ({
                     <span className={isDark ? 'text-zinc-400' : 'text-slate-500'}>
                       Patients Ahead in Queue:
                     </span>
-                    <strong className="text-sky-600 dark:text-sky-400 font-bold">
+                    <strong className="text-green-600 dark:text-green-400 font-bold">
                       {waitingAheadCount === 0 ? 'You are Next in Line!' : `${waitingAheadCount} ahead`}
                     </strong>
                   </div>
@@ -412,7 +345,7 @@ export const ClientPatientView: React.FC<ClientPatientViewProps> = ({
                     <span className={`font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>
                       {clinicConfig.doctorName}
                     </span>
-                    <span className="text-[11px] text-sky-600 dark:text-sky-400 font-medium">
+                    <span className="text-[11px] text-green-600 dark:text-green-400 font-medium">
                       {clinicConfig.cabinName}
                     </span>
                   </div>
@@ -464,7 +397,7 @@ export const ClientPatientView: React.FC<ClientPatientViewProps> = ({
                 <button
                   type="button"
                   onClick={() => setActiveTab('book')}
-                  className="px-5 py-2.5 bg-sky-600 hover:bg-sky-700 text-white text-xs font-semibold rounded-xl shadow-xs inline-flex items-center gap-2"
+                  className="px-5 py-2.5 bg-green-600 hover:bg-green-700 text-white text-xs font-semibold rounded-xl shadow-xs inline-flex items-center gap-2"
                 >
                   <CalendarPlus className="w-4 h-4" />
                   <span>Book Next Day Appointment</span>
@@ -481,12 +414,12 @@ export const ClientPatientView: React.FC<ClientPatientViewProps> = ({
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <Users className="w-4 h-4 text-sky-500" />
+                    <Users className="w-4 h-4 text-green-500" />
                     <h3 className="text-xs font-bold uppercase tracking-wider">
                       Booked List ({formatReadableDate(activeAppointment?.date || nextDayStr)})
                     </h3>
                   </div>
-                  <span className="text-[11px] font-mono text-sky-600 dark:text-sky-400 font-bold">
+                  <span className="text-[11px] font-mono text-green-600 dark:text-green-400 font-bold">
                     {allAppointmentsForDate.length} Booked
                   </span>
                 </div>
@@ -500,8 +433,8 @@ export const ClientPatientView: React.FC<ClientPatientViewProps> = ({
                         className={`p-2.5 rounded-xl border flex items-center justify-between text-xs transition-colors ${
                           isMe
                             ? isDark
-                              ? 'bg-sky-950/40 border-sky-700 text-sky-200 font-bold'
-                              : 'bg-sky-50 border-sky-300 text-sky-900 font-bold'
+                              ? 'bg-green-950/40 border-green-700 text-green-200 font-bold'
+                              : 'bg-green-50 border-green-300 text-green-900 font-bold'
                             : isDark
                             ? 'bg-zinc-950 border-zinc-800 text-zinc-300'
                             : 'bg-slate-50 border-slate-200 text-slate-700'
@@ -511,7 +444,7 @@ export const ClientPatientView: React.FC<ClientPatientViewProps> = ({
                           <span
                             className={`w-6 h-6 rounded-lg flex items-center justify-center font-bold text-xs ${
                               isMe
-                                ? 'bg-sky-600 text-white'
+                                ? 'bg-green-600 text-white'
                                 : isDark
                                 ? 'bg-zinc-800 text-zinc-300'
                                 : 'bg-slate-200 text-slate-700'
@@ -548,7 +481,7 @@ export const ClientPatientView: React.FC<ClientPatientViewProps> = ({
             }`}
           >
             <div>
-              <span className="text-[10px] font-mono px-2 py-0.5 rounded-md bg-sky-500/15 text-sky-600 dark:text-sky-400 font-bold">
+              <span className="text-[10px] font-mono px-2 py-0.5 rounded-md bg-green-500/15 text-green-600 dark:text-green-400 font-bold">
                 STRICT FCFS BOOKING
               </span>
               <h2 className="text-base font-bold mt-1.5">
@@ -586,7 +519,7 @@ export const ClientPatientView: React.FC<ClientPatientViewProps> = ({
                   <button
                     type="button"
                     onClick={() => setActiveTab('token')}
-                    className="px-3.5 py-1.5 bg-sky-600 hover:bg-sky-700 text-white rounded-xl text-xs font-semibold shadow-xs"
+                    className="px-3.5 py-1.5 bg-green-600 hover:bg-green-700 text-white rounded-xl text-xs font-semibold shadow-xs"
                   >
                     View My Active Seat
                   </button>
@@ -620,7 +553,7 @@ export const ClientPatientView: React.FC<ClientPatientViewProps> = ({
                       For {formatReadableDate(bookingDate)}
                     </span>
                   </div>
-                  <div className="px-3.5 py-1.5 bg-sky-600 text-white rounded-xl text-xs font-black shadow-xs text-center">
+                  <div className="px-3.5 py-1.5 bg-green-600 text-white rounded-xl text-xs font-black shadow-xs text-center">
                     Seat #{nextAvailableSeatNumber}
                   </div>
                 </div>
@@ -652,7 +585,7 @@ export const ClientPatientView: React.FC<ClientPatientViewProps> = ({
                       value={bookingDate}
                       min={nextDayStr}
                       onChange={(e) => setBookingDate(e.target.value)}
-                      className={`w-full px-3.5 py-2.5 rounded-xl text-xs font-medium border focus:outline-none focus:ring-2 focus:ring-sky-500 ${
+                      className={`w-full px-3.5 py-2.5 rounded-xl text-xs font-medium border focus:outline-none focus:ring-2 focus:ring-green-500 ${
                         isDark
                           ? 'bg-zinc-950 border-zinc-700 text-white'
                           : 'bg-slate-50 border-slate-300 text-slate-900 focus:bg-white'
@@ -677,7 +610,7 @@ export const ClientPatientView: React.FC<ClientPatientViewProps> = ({
                       value={reason}
                       onChange={(e) => setReason(e.target.value)}
                       placeholder="e.g. Follow-up consultation, persistent cough, fever since 2 days..."
-                      className={`w-full px-3.5 py-2.5 rounded-xl text-xs border focus:outline-none focus:ring-2 focus:ring-sky-500 ${
+                      className={`w-full px-3.5 py-2.5 rounded-xl text-xs border focus:outline-none focus:ring-2 focus:ring-green-500 ${
                         isDark
                           ? 'bg-black/50 border-zinc-700 text-white placeholder:text-zinc-600'
                           : 'bg-slate-50 border-slate-300 text-slate-900 placeholder:text-slate-400 focus:bg-white'
@@ -690,7 +623,7 @@ export const ClientPatientView: React.FC<ClientPatientViewProps> = ({
                       isDark ? 'bg-zinc-950 border-zinc-800 text-zinc-400' : 'bg-slate-50 border-slate-200 text-slate-600'
                     }`}
                   >
-                    <div className="flex items-center gap-1.5 text-sky-600 dark:text-sky-400 font-semibold">
+                    <div className="flex items-center gap-1.5 text-green-600 dark:text-green-400 font-semibold">
                       <Sparkles className="w-3.5 h-3.5" />
                       <span>FCFS Priority Guarantee:</span>
                     </div>
@@ -701,7 +634,7 @@ export const ClientPatientView: React.FC<ClientPatientViewProps> = ({
 
                   <button
                     type="submit"
-                    className="w-full py-3 px-4 bg-sky-600 hover:bg-sky-700 text-white font-semibold text-xs rounded-xl shadow-xs flex items-center justify-center gap-2 transition-colors"
+                    className="w-full py-3 px-4 bg-green-600 hover:bg-green-700 text-white font-semibold text-xs rounded-xl shadow-xs flex items-center justify-center gap-2 transition-colors"
                   >
                     <CalendarPlus className="w-4 h-4" />
                     <span>Confirm Booking & Get Seat #{nextAvailableSeatNumber}</span>
@@ -746,7 +679,7 @@ export const ClientPatientView: React.FC<ClientPatientViewProps> = ({
                 >
                   <div className="flex items-center justify-between">
                     <div>
-                      <span className="text-[10px] font-mono uppercase text-sky-600 dark:text-sky-400 font-bold block">
+                      <span className="text-[10px] font-mono uppercase text-green-600 dark:text-green-400 font-bold block">
                         Prescription #{rx.id.slice(-6)}
                       </span>
                       <h3 className="text-sm font-bold">{formatReadableDate(rx.date)}</h3>
@@ -755,7 +688,7 @@ export const ClientPatientView: React.FC<ClientPatientViewProps> = ({
                     <button
                       type="button"
                       onClick={() => downloadPrescriptionPDF(rx)}
-                      className="px-3 py-1.5 bg-sky-600 hover:bg-sky-700 text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 shadow-xs transition-colors"
+                      className="px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 shadow-xs transition-colors"
                     >
                       <Download className="w-3.5 h-3.5" />
                       <span>Download PDF</span>
@@ -798,7 +731,7 @@ export const ClientPatientView: React.FC<ClientPatientViewProps> = ({
                             )}
                           </div>
 
-                          <span className="px-2 py-0.5 rounded-full bg-sky-500/15 text-sky-600 dark:text-sky-400 font-mono text-[11px] font-bold shrink-0">
+                          <span className="px-2 py-0.5 rounded-full bg-green-500/15 text-green-600 dark:text-green-400 font-mono text-[11px] font-bold shrink-0">
   ⏰ {med.times && med.times.length > 0 ? med.times.join(', ') : '08:00 AM'}
 </span>
                         </div>
@@ -819,7 +752,7 @@ export const ClientPatientView: React.FC<ClientPatientViewProps> = ({
                               </span>
                             )}
                             {med.dosageSlots?.lunch && (
-                              <span className="px-1.5 py-0.5 rounded bg-sky-500/20 text-sky-700 dark:text-sky-300 text-[10px] font-bold">
+                              <span className="px-1.5 py-0.5 rounded bg-green-500/20 text-green-700 dark:text-green-300 text-[10px] font-bold">
                                 Lunch
                               </span>
                             )}
@@ -845,7 +778,7 @@ export const ClientPatientView: React.FC<ClientPatientViewProps> = ({
                   <button
                     type="button"
                     onClick={() => downloadPrescriptionPDF(rx)}
-                    className={`w-full py-2.5 rounded-xl text-xs font-semibold text-sky-600 dark:text-sky-400 flex items-center justify-center gap-2 border transition-colors ${
+                    className={`w-full py-2.5 rounded-xl text-xs font-semibold text-green-600 dark:text-green-400 flex items-center justify-center gap-2 border transition-colors ${
                       isDark
                         ? 'bg-zinc-950 border-zinc-800 hover:bg-zinc-800'
                         : 'bg-white border-slate-200 hover:bg-slate-50 shadow-xs'
@@ -893,7 +826,7 @@ export const ClientPatientView: React.FC<ClientPatientViewProps> = ({
                   <button
                     type="button"
                     onClick={handleRequestNotifications}
-                    className="px-3.5 py-1.5 bg-sky-600 hover:bg-sky-700 text-white rounded-xl text-xs font-semibold shadow-xs"
+                    className="px-3.5 py-1.5 bg-green-600 hover:bg-green-700 text-white rounded-xl text-xs font-semibold shadow-xs"
                   >
                     Enable Alarms
                   </button>
@@ -914,14 +847,14 @@ export const ClientPatientView: React.FC<ClientPatientViewProps> = ({
             {nextDose && (
               <div
                 className={`rounded-2xl p-5 border space-y-3 ${
-                  isDark ? 'bg-zinc-900 border-sky-800/60' : 'bg-sky-50/70 border-sky-200'
+                  isDark ? 'bg-zinc-900 border-green-800/60' : 'bg-green-50/70 border-green-200'
                 }`}
               >
                 <div className="flex items-center justify-between">
-                  <span className="text-[10px] font-bold text-sky-600 dark:text-sky-400 uppercase tracking-wider">
+                  <span className="text-[10px] font-bold text-green-600 dark:text-green-400 uppercase tracking-wider">
                     Next Upcoming Dose
                   </span>
-                  <span className="px-2 py-0.5 rounded-full bg-sky-600 text-white text-xs font-mono font-bold">
+                  <span className="px-2 py-0.5 rounded-full bg-green-600 text-white text-xs font-mono font-bold">
                     ⏰ {nextDose.nextTime}
                   </span>
                 </div>
@@ -952,7 +885,7 @@ export const ClientPatientView: React.FC<ClientPatientViewProps> = ({
               }`}
             >
               <div className="flex items-center gap-2">
-                <Volume2 className="w-4 h-4 text-sky-500" />
+                <Volume2 className="w-4 h-4 text-green-500" />
                 <h3 className="text-xs font-bold uppercase tracking-wider">
                   Test Audio Alarm Chime
                 </h3>
@@ -964,7 +897,7 @@ export const ClientPatientView: React.FC<ClientPatientViewProps> = ({
               <button
                 type="button"
                 onClick={handleTestMedicineNotification}
-                className="w-full py-3 px-4 bg-sky-600 hover:bg-sky-700 text-white font-semibold text-xs rounded-xl shadow-xs flex items-center justify-center gap-2 transition-colors"
+                className="w-full py-3 px-4 bg-green-600 hover:bg-green-700 text-white font-semibold text-xs rounded-xl shadow-xs flex items-center justify-center gap-2 transition-colors"
               >
                 <Bell className="w-4 h-4" />
                 <span>Test &quot;It&apos;s Medicine Time!&quot; Alarm Now</span>
@@ -982,15 +915,18 @@ export const ClientPatientView: React.FC<ClientPatientViewProps> = ({
 
       {/* Mobile Bottom Navigation Bar */}
       <nav
-        className={`fixed bottom-0 left-0 right-0 z-40 border-t py-2 px-4 flex items-center justify-around max-w-xl mx-auto transition-colors ${
+        className={`fixed bottom-0 left-0 right-0 z-40 border-t px-2 pt-2 flex items-center justify-around max-w-xl mx-auto backdrop-blur-md shadow-[0_-4px_16px_rgba(15,23,42,0.06)] transition-colors ${
           isDark ? 'bg-zinc-950/95 border-zinc-800' : 'bg-white/95 border-slate-200'
         }`}
+        style={{ paddingBottom: 'max(0.5rem, env(safe-area-inset-bottom))' }}
       >
         <button
           type="button"
           onClick={() => setActiveTab('token')}
-          className={`flex flex-col items-center gap-1 py-1 px-2 rounded-xl transition-all ${
-            activeTab === 'token' ? 'text-sky-600 dark:text-sky-400 font-bold' : isDark ? 'text-zinc-400' : 'text-slate-500'
+          className={`flex-1 flex flex-col items-center gap-1 py-1.5 rounded-xl transition-all ${
+            activeTab === 'token'
+              ? 'text-green-600 dark:text-green-400 font-bold bg-green-500/10'
+              : isDark ? 'text-zinc-400' : 'text-slate-500'
           }`}
         >
           <Ticket className="w-5 h-5" />
@@ -1000,8 +936,10 @@ export const ClientPatientView: React.FC<ClientPatientViewProps> = ({
         <button
           type="button"
           onClick={() => setActiveTab('book')}
-          className={`flex flex-col items-center gap-1 py-1 px-2 rounded-xl transition-all ${
-            activeTab === 'book' ? 'text-sky-600 dark:text-sky-400 font-bold' : isDark ? 'text-zinc-400' : 'text-slate-500'
+          className={`flex-1 flex flex-col items-center gap-1 py-1.5 rounded-xl transition-all ${
+            activeTab === 'book'
+              ? 'text-green-600 dark:text-green-400 font-bold bg-green-500/10'
+              : isDark ? 'text-zinc-400' : 'text-slate-500'
           }`}
         >
           <CalendarPlus className="w-5 h-5" />
@@ -1011,8 +949,10 @@ export const ClientPatientView: React.FC<ClientPatientViewProps> = ({
         <button
           type="button"
           onClick={() => setActiveTab('prescriptions')}
-          className={`flex flex-col items-center gap-1 py-1 px-2 rounded-xl transition-all ${
-            activeTab === 'prescriptions' ? 'text-sky-600 dark:text-sky-400 font-bold' : isDark ? 'text-zinc-400' : 'text-slate-500'
+          className={`flex-1 flex flex-col items-center gap-1 py-1.5 rounded-xl transition-all ${
+            activeTab === 'prescriptions'
+              ? 'text-green-600 dark:text-green-400 font-bold bg-green-500/10'
+              : isDark ? 'text-zinc-400' : 'text-slate-500'
           }`}
         >
           <FileText className="w-5 h-5" />
@@ -1022,8 +962,10 @@ export const ClientPatientView: React.FC<ClientPatientViewProps> = ({
         <button
           type="button"
           onClick={() => setActiveTab('reminders')}
-          className={`flex flex-col items-center gap-1 py-1 px-2 rounded-xl transition-all ${
-            activeTab === 'reminders' ? 'text-sky-600 dark:text-sky-400 font-bold' : isDark ? 'text-zinc-400' : 'text-slate-500'
+          className={`flex-1 flex flex-col items-center gap-1 py-1.5 rounded-xl transition-all ${
+            activeTab === 'reminders'
+              ? 'text-green-600 dark:text-green-400 font-bold bg-green-500/10'
+              : isDark ? 'text-zinc-400' : 'text-slate-500'
           }`}
         >
           <Bell className="w-5 h-5" />

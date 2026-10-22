@@ -72,41 +72,64 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
   const isDark = theme === 'dark';
 
   return (
-    
     <div
-  className={`min-h-screen flex flex-col justify-between p-4 sm:p-6 transition-colors bg-cover bg-center bg-no-repeat ${
-    isDark ? 'text-zinc-100' : 'text-slate-900'
-  }`}
-  
-  style={{
-    backgroundImage: `url('../../assets/doc.png')`,
-  }}
+      className={`relative min-h-screen flex flex-col justify-between p-4 sm:p-6 overflow-hidden transition-colors ${
+        isDark ? 'bg-black text-zinc-100' : 'bg-gradient-to-b from-green-50 via-white to-white text-slate-900'
+      }`}
+    >
+      {/* Decorative accent glow — single deliberate touch, kept quiet */}
+      <div
+        aria-hidden="true"
+        className={`pointer-events-none absolute -top-24 left-1/2 -translate-x-1/2 w-[32rem] h-[32rem] rounded-full blur-3xl ${
+          isDark ? 'bg-green-500/10' : 'bg-green-400/20'
+        }`}
+      />
 
->
-    
-      
-{/* Top Header Bar with Brand and Theme Toggle */}
-<header className={`max-w-md w-full mx-auto flex items-center justify-between py-3 px-4 rounded-2xl border shadow-sm transition-colors ${
-  isDark ? 'bg-zinc-900 border-zinc-800 text-white' : 'bg-white border-slate-200 text-slate-900'
-}`}>
-  <div className="flex items-center gap-2">
-    <div className="w-9 h-9 rounded-xl bg-sky-600 text-white flex items-center justify-center shadow-xs">
-      <Stethoscope className="w-5 h-5" />
-    </div>
-    <span className={`font-bold text-sm tracking-tight ${isDark ? 'text-white' : 'text-slate-900'}`}>
-      Dr. Doctor Clinic
-    </span>
-  </div>
+      {/* Top Header Bar with Brand and Theme Toggle */}
+      <header
+        className={`relative max-w-md w-full mx-auto flex items-center justify-between py-3 px-4 rounded-2xl border shadow-sm transition-colors ${
+          isDark ? 'bg-zinc-900 border-zinc-800 text-white' : 'bg-white/90 backdrop-blur-sm border-slate-200 text-slate-900'
+        }`}
+      >
+        <div className="flex items-center gap-2">
+          <div className="w-9 h-9 rounded-xl bg-green-600 text-white flex items-center justify-center shadow-xs">
+            <Stethoscope className="w-5 h-5" />
+          </div>
+          <span className={`font-bold text-sm tracking-tight ${isDark ? 'text-white' : 'text-slate-900'}`}>
+            Dr. Doctor Clinic
+          </span>
+        </div>
 
-  <div className="flex items-center gap-2">
-    <ThemeToggle />
-  </div>
-</header>
+        <div className="flex items-center gap-2">
+          <ThemeToggle />
+        </div>
+      </header>
 
       {/* Center Main Login Card */}
-      <main className="max-w-md w-full mx-auto my-auto py-6">
+      <main className="relative max-w-md w-full mx-auto my-auto py-6 space-y-5">
+        {/* Feature strip — grounded in the clinic's actual capabilities */}
+        <div className="grid grid-cols-3 gap-2">
+          {[
+            { icon: ShieldCheck, label: 'Live Token Queue' },
+            { icon: Database, label: 'Digital Prescriptions' },
+            { icon: Bell, label: 'Dose Reminders' },
+          ].map(({ icon: Icon, label }) => (
+            <div
+              key={label}
+              className={`rounded-xl border px-2 py-3 flex flex-col items-center gap-1.5 text-center transition-colors ${
+                isDark ? 'bg-zinc-900 border-zinc-800' : 'bg-white border-slate-200'
+              }`}
+            >
+              <Icon className="w-4 h-4 text-green-600 dark:text-green-400" />
+              <span className={`text-[10px] font-semibold leading-tight ${isDark ? 'text-zinc-300' : 'text-slate-600'}`}>
+                {label}
+              </span>
+            </div>
+          ))}
+        </div>
+
         <div
-          className={`rounded-2xl p-6 sm:p-8 border shadow-sm space-y-6 transition-colors ${
+          className={`rounded-2xl p-6 sm:p-8 border shadow-lg space-y-6 transition-colors ${
             isDark
               ? 'bg-zinc-900 border-zinc-800'
               : 'bg-white border-slate-200'
@@ -156,7 +179,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
                   placeholder="Enter 10-digit phone number"
-                  className={`w-full pl-10 pr-3.5 py-2.5 rounded-xl text-xs font-semibold border transition-all focus:outline-none focus:ring-2 focus:ring-sky-500 ${
+                  className={`w-full pl-10 pr-3.5 py-2.5 rounded-xl text-xs font-semibold border transition-all focus:outline-none focus:ring-2 focus:ring-green-500 ${
                     isDark
                       ? 'bg-black/50 border-zinc-700 text-white placeholder:text-zinc-600'
                       : 'bg-slate-50 border-slate-300 text-slate-900 placeholder:text-slate-400 focus:bg-white'
@@ -185,7 +208,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Enter your password"
-                  className={`w-full pl-10 pr-3.5 py-2.5 rounded-xl text-xs font-semibold border transition-all focus:outline-none focus:ring-2 focus:ring-sky-500 ${
+                  className={`w-full pl-10 pr-3.5 py-2.5 rounded-xl text-xs font-semibold border transition-all focus:outline-none focus:ring-2 focus:ring-green-500 ${
                     isDark
                       ? 'bg-black/50 border-zinc-700 text-white placeholder:text-zinc-600'
                       : 'bg-slate-50 border-slate-300 text-slate-900 placeholder:text-slate-400 focus:bg-white'
@@ -196,33 +219,26 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
 
             <button
               type="submit"
-              className="w-full py-3 px-4 bg-sky-600 hover:bg-sky-700 text-white font-semibold text-xs rounded-xl shadow-xs transition-colors flex items-center justify-center gap-2 mt-2"
+              className="w-full py-3 px-4 bg-green-600 hover:bg-green-700 text-white font-semibold text-xs rounded-xl shadow-xs transition-colors flex items-center justify-center gap-2 mt-2"
             >
               <span>Sign In</span>
               <ArrowRight className="w-4 h-4" />
             </button>
           </form>
 
-          {/* Clean Quick Demo Access */}
-          
-        </div>
-
-        {/* Firebase Realtime Database & FCM Notice */}
-        <div className="mt-4 text-center space-y-1">
-          
         </div>
       </main>
 
-{/* Footer */}
-<footer className={`max-w-md w-full mx-auto text-center py-3 px-4 rounded-2xl border shadow-sm transition-colors ${
-  isDark ? 'bg-zinc-900 border-zinc-800 text-zinc-400' : 'bg-white border-slate-200 text-slate-500'
-}`}>
-  <p className="text-[11px] font-medium">
-    Dr. Doctor Clinic • Your personalized All-in-One App
-  </p>
-</footer>
-      
-      
+      {/* Footer */}
+      <footer
+        className={`relative max-w-md w-full mx-auto text-center py-3 px-4 rounded-2xl border shadow-sm transition-colors ${
+          isDark ? 'bg-zinc-900 border-zinc-800 text-zinc-400' : 'bg-white/90 backdrop-blur-sm border-slate-200 text-slate-500'
+        }`}
+      >
+        <p className="text-[11px] font-medium">
+          Dr. Doctor Clinic • Your personalized All-in-One App
+        </p>
+      </footer>
     </div>
   );
 };

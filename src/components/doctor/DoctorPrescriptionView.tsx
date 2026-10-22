@@ -228,7 +228,7 @@ export const DoctorPrescriptionView: React.FC<DoctorPrescriptionViewProps> = ({
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <h2 className="text-base sm:text-lg font-bold tracking-tight flex items-center gap-2">
-            <FileText className="w-5 h-5 text-sky-500" />
+            <FileText className="w-5 h-5 text-green-500" />
             <span>Digital Prescription Console</span>
           </h2>
           <p className={`text-xs ${isDark ? 'text-zinc-400' : 'text-slate-500'}`}>
@@ -246,14 +246,14 @@ export const DoctorPrescriptionView: React.FC<DoctorPrescriptionViewProps> = ({
                 : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-100 shadow-xs'
             }`}
           >
-            <Download className="w-4 h-4 text-sky-500" />
+            <Download className="w-4 h-4 text-green-500" />
             <span>Save & PDF</span>
           </button>
 
           <button
             type="button"
             onClick={() => handleSubmitPrescription(false)}
-            className="px-4 py-2 bg-sky-600 hover:bg-sky-700 text-white rounded-xl text-xs font-semibold flex items-center gap-2 transition-colors shadow-xs"
+            className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-xl text-xs font-semibold flex items-center gap-2 transition-colors shadow-xs"
           >
             <Send className="w-4 h-4" />
             <span>Save & Issue Prescription to Client Phone</span>
@@ -292,7 +292,7 @@ export const DoctorPrescriptionView: React.FC<DoctorPrescriptionViewProps> = ({
       >
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex items-center gap-2">
-            <UserCheck className="w-4 h-4 text-sky-500" />
+            <UserCheck className="w-4 h-4 text-green-500" />
             <h3 className="text-xs font-bold uppercase tracking-wider">
               1. Select Prescribed Client
             </h3>
@@ -302,7 +302,7 @@ export const DoctorPrescriptionView: React.FC<DoctorPrescriptionViewProps> = ({
             <select
               value={selectedClientId}
               onChange={(e) => setSelectedClientId(e.target.value)}
-              className={`w-full px-3 py-2 rounded-xl text-xs font-medium border focus:outline-none focus:ring-2 focus:ring-sky-500 ${
+              className={`w-full px-3 py-2 rounded-xl text-xs font-medium border focus:outline-none focus:ring-2 focus:ring-green-500 ${
                 isDark
                   ? 'bg-zinc-950 border-zinc-700 text-white'
                   : 'bg-slate-50 border-slate-300 text-slate-900 focus:bg-white'
@@ -324,7 +324,7 @@ export const DoctorPrescriptionView: React.FC<DoctorPrescriptionViewProps> = ({
             }`}
           >
             <div className="flex items-center gap-3">
-              <span className="w-8 h-8 rounded-xl bg-sky-500/15 text-sky-600 dark:text-sky-400 font-bold flex items-center justify-center">
+              <span className="w-8 h-8 rounded-xl bg-green-500/15 text-green-600 dark:text-green-400 font-bold flex items-center justify-center">
                 {clientObj.name.charAt(0)}
               </span>
               <div>
@@ -366,7 +366,7 @@ export const DoctorPrescriptionView: React.FC<DoctorPrescriptionViewProps> = ({
               value={diagnosis}
               onChange={(e) => setDiagnosis(e.target.value)}
               placeholder="Enter provisional diagnosis..."
-              className={`w-full px-3.5 py-2 rounded-xl text-xs font-medium border focus:outline-none focus:ring-2 focus:ring-sky-500 ${
+              className={`w-full px-3.5 py-2 rounded-xl text-xs font-medium border focus:outline-none focus:ring-2 focus:ring-green-500 ${
                 isDark
                   ? 'bg-black/50 border-zinc-700 text-white placeholder:text-zinc-600'
                   : 'bg-slate-50 border-slate-300 text-slate-900 placeholder:text-slate-400 focus:bg-white'
@@ -387,7 +387,7 @@ export const DoctorPrescriptionView: React.FC<DoctorPrescriptionViewProps> = ({
               value={symptomsInput}
               onChange={(e) => setSymptomsInput(e.target.value)}
               placeholder="e.g. Fever, Cough (comma separated)..."
-              className={`w-full px-3.5 py-2 rounded-xl text-xs font-medium border focus:outline-none focus:ring-2 focus:ring-sky-500 ${
+              className={`w-full px-3.5 py-2 rounded-xl text-xs font-medium border focus:outline-none focus:ring-2 focus:ring-green-500 ${
                 isDark
                   ? 'bg-black/50 border-zinc-700 text-white placeholder:text-zinc-600'
                   : 'bg-slate-50 border-slate-300 text-slate-900 placeholder:text-slate-400 focus:bg-white'
@@ -407,7 +407,7 @@ export const DoctorPrescriptionView: React.FC<DoctorPrescriptionViewProps> = ({
               value={bp}
               onChange={(e) => setBp(e.target.value)}
               placeholder="e.g. 120/80"
-              className={`w-full px-3 py-1.5 rounded-xl text-xs font-mono font-medium border focus:outline-none focus:ring-2 focus:ring-sky-500 ${
+              className={`w-full px-3 py-1.5 rounded-xl text-xs font-mono font-medium border focus:outline-none focus:ring-2 focus:ring-green-500 ${
                 isDark
                   ? 'bg-black/50 border-zinc-700 text-white'
                   : 'bg-slate-50 border-slate-300 text-slate-900 focus:bg-white'
@@ -423,7 +423,7 @@ export const DoctorPrescriptionView: React.FC<DoctorPrescriptionViewProps> = ({
               value={pulse}
               onChange={(e) => setPulse(e.target.value)}
               placeholder="e.g. 72"
-              className={`w-full px-3 py-1.5 rounded-xl text-xs font-mono font-medium border focus:outline-none focus:ring-2 focus:ring-sky-500 ${
+              className={`w-full px-3 py-1.5 rounded-xl text-xs font-mono font-medium border focus:outline-none focus:ring-2 focus:ring-green-500 ${
                 isDark
                   ? 'bg-black/50 border-zinc-700 text-white'
                   : 'bg-slate-50 border-slate-300 text-slate-900 focus:bg-white'
@@ -439,7 +439,7 @@ export const DoctorPrescriptionView: React.FC<DoctorPrescriptionViewProps> = ({
               value={temperature}
               onChange={(e) => setTemperature(e.target.value)}
               placeholder="e.g. 98.6"
-              className={`w-full px-3 py-1.5 rounded-xl text-xs font-mono font-medium border focus:outline-none focus:ring-2 focus:ring-sky-500 ${
+              className={`w-full px-3 py-1.5 rounded-xl text-xs font-mono font-medium border focus:outline-none focus:ring-2 focus:ring-green-500 ${
                 isDark
                   ? 'bg-black/50 border-zinc-700 text-white'
                   : 'bg-slate-50 border-slate-300 text-slate-900 focus:bg-white'
@@ -455,7 +455,7 @@ export const DoctorPrescriptionView: React.FC<DoctorPrescriptionViewProps> = ({
               value={spo2}
               onChange={(e) => setSpo2(e.target.value)}
               placeholder="e.g. 98"
-              className={`w-full px-3 py-1.5 rounded-xl text-xs font-mono font-medium border focus:outline-none focus:ring-2 focus:ring-sky-500 ${
+              className={`w-full px-3 py-1.5 rounded-xl text-xs font-mono font-medium border focus:outline-none focus:ring-2 focus:ring-green-500 ${
                 isDark
                   ? 'bg-black/50 border-zinc-700 text-white'
                   : 'bg-slate-50 border-slate-300 text-slate-900 focus:bg-white'
@@ -464,9 +464,6 @@ export const DoctorPrescriptionView: React.FC<DoctorPrescriptionViewProps> = ({
           </div>
         </div>
       </div>
-
-
-
 
 
 {/* Prescribed Medicines (Exact user-specified format) */}
@@ -489,7 +486,7 @@ export const DoctorPrescriptionView: React.FC<DoctorPrescriptionViewProps> = ({
     <button
       type="button"
       onClick={handleAddMedicineRow}
-      className="px-3 py-1.5 bg-sky-600 hover:bg-sky-700 text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-xs"
+      className="px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-xs"
     >
       <Plus className="w-3.5 h-3.5" />
       <span>Add Medicine</span>
@@ -508,7 +505,7 @@ export const DoctorPrescriptionView: React.FC<DoctorPrescriptionViewProps> = ({
       <button
         type="button"
         onClick={handleAddMedicineRow}
-        className="px-4 py-2 bg-sky-600 hover:bg-sky-700 text-white rounded-xl text-xs font-semibold inline-flex items-center gap-1.5 transition-colors shadow-xs"
+        className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-xl text-xs font-semibold inline-flex items-center gap-1.5 transition-colors shadow-xs"
       >
         <Plus className="w-3.5 h-3.5" />
         <span>Add First Medicine</span>
@@ -528,8 +525,8 @@ export const DoctorPrescriptionView: React.FC<DoctorPrescriptionViewProps> = ({
               isDark ? 'border-zinc-800' : 'border-slate-200'
             }`}
           >
-            <span className="text-xs font-bold text-sky-600 dark:text-sky-400 flex items-center gap-1.5">
-              <span className="w-5 h-5 rounded-full bg-sky-500/15 flex items-center justify-center text-[10px]">
+            <span className="text-xs font-bold text-green-600 dark:text-green-400 flex items-center gap-1.5">
+              <span className="w-5 h-5 rounded-full bg-green-500/15 flex items-center justify-center text-[10px]">
                 {index + 1}
               </span>
               <span>Medicine Item #{index + 1}</span>
@@ -561,7 +558,7 @@ export const DoctorPrescriptionView: React.FC<DoctorPrescriptionViewProps> = ({
                 value={med.name}
                 onChange={(e) => handleUpdateMed(med.id, 'name', e.target.value)}
                 placeholder="e.g. Paracetamol 650mg"
-                className={`w-full px-3.5 py-2 rounded-xl text-xs font-medium border focus:outline-none focus:ring-2 focus:ring-sky-500 ${
+                className={`w-full px-3.5 py-2 rounded-xl text-xs font-medium border focus:outline-none focus:ring-2 focus:ring-green-500 ${
                   isDark
                     ? 'bg-black/50 border-zinc-700 text-white placeholder:text-zinc-600'
                     : 'bg-white border-slate-300 text-slate-900 placeholder:text-slate-400'
@@ -582,7 +579,7 @@ export const DoctorPrescriptionView: React.FC<DoctorPrescriptionViewProps> = ({
                 value={med.description}
                 onChange={(e) => handleUpdateMed(med.id, 'description', e.target.value)}
                 placeholder="e.g. Take for fever relief. Do not skip."
-                className={`w-full px-3.5 py-2 rounded-xl text-xs font-medium border focus:outline-none focus:ring-2 focus:ring-sky-500 ${
+                className={`w-full px-3.5 py-2 rounded-xl text-xs font-medium border focus:outline-none focus:ring-2 focus:ring-green-500 ${
                   isDark
                     ? 'bg-black/50 border-zinc-700 text-white placeholder:text-zinc-600'
                     : 'bg-white border-slate-300 text-slate-900 placeholder:text-slate-400'
@@ -612,7 +609,7 @@ export const DoctorPrescriptionView: React.FC<DoctorPrescriptionViewProps> = ({
                       onClick={() => handleToggleDosageSlot(med.id, slot)}
                       className={`flex-1 py-1.5 px-2 rounded-xl text-xs font-bold capitalize transition-all border ${
                         isActive
-                          ? 'bg-sky-600 text-white border-sky-600 shadow-xs'
+                          ? 'bg-green-600 text-white border-green-600 shadow-xs'
                           : isDark
                           ? 'bg-zinc-900 border-zinc-700 text-zinc-400 hover:bg-zinc-800'
                           : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-100'
@@ -637,7 +634,7 @@ export const DoctorPrescriptionView: React.FC<DoctorPrescriptionViewProps> = ({
               <select
                 value={med.timing}
                 onChange={(e) => handleUpdateMed(med.id, 'timing', e.target.value as any)}
-                className={`w-full px-3 py-2 rounded-xl text-xs font-medium border focus:outline-none focus:ring-2 focus:ring-sky-500 ${
+                className={`w-full px-3 py-2 rounded-xl text-xs font-medium border focus:outline-none focus:ring-2 focus:ring-green-500 ${
                   isDark
                     ? 'bg-zinc-900 border-zinc-700 text-white'
                     : 'bg-white border-slate-300 text-slate-900'
@@ -658,7 +655,7 @@ export const DoctorPrescriptionView: React.FC<DoctorPrescriptionViewProps> = ({
                 <button
                   type="button"
                   onClick={() => handleAddMedTime(med.id)}
-                  className="text-[10px] text-sky-500 hover:underline font-semibold"
+                  className="text-[10px] text-green-500 hover:underline font-semibold"
                 >
                   + Add Time
                 </button>
@@ -671,7 +668,7 @@ export const DoctorPrescriptionView: React.FC<DoctorPrescriptionViewProps> = ({
                       type="time"
                       value={t}
                       onChange={(e) => handleUpdateMedTime(med.id, tIdx, e.target.value)}
-                      className={`px-2 py-1 rounded-lg text-xs font-mono font-bold border focus:outline-none focus:ring-1 focus:ring-sky-500 ${
+                      className={`px-2 py-1 rounded-lg text-xs font-mono font-bold border focus:outline-none focus:ring-1 focus:ring-green-500 ${
                         isDark ? 'bg-zinc-900 border-zinc-700 text-amber-400' : 'bg-white border-slate-300 text-amber-700'
                       }`}
                     />
@@ -701,8 +698,8 @@ export const DoctorPrescriptionView: React.FC<DoctorPrescriptionViewProps> = ({
                 max="90"
                 value={med.durationDays ?? 5}
                 onChange={(e) => handleUpdateMed(med.id, 'durationDays', parseInt(e.target.value) || 1)}
-                className={`w-full px-3 py-2 rounded-xl text-xs font-mono font-bold border focus:outline-none focus:ring-1 focus:ring-sky-500 ${
-                  isDark ? 'bg-zinc-900 border-zinc-700 text-sky-400' : 'bg-white border-slate-300 text-sky-700'
+                className={`w-full px-3 py-2 rounded-xl text-xs font-mono font-bold border focus:outline-none focus:ring-1 focus:ring-green-500 ${
+                  isDark ? 'bg-zinc-900 border-zinc-700 text-green-400' : 'bg-white border-slate-300 text-green-700'
                 }`}
               />
             </div>
@@ -712,9 +709,6 @@ export const DoctorPrescriptionView: React.FC<DoctorPrescriptionViewProps> = ({
     </div>
   )}
 </div>
-      
-      
-      
 
       {/* General Advice & Follow-up */}
       <div
@@ -740,7 +734,7 @@ export const DoctorPrescriptionView: React.FC<DoctorPrescriptionViewProps> = ({
               value={generalAdvice}
               onChange={(e) => setGeneralAdvice(e.target.value)}
               placeholder="e.g. Rest, drink warm water, avoid cold items..."
-              className={`w-full px-3.5 py-2 rounded-xl text-xs font-medium border focus:outline-none focus:ring-2 focus:ring-sky-500 ${
+              className={`w-full px-3.5 py-2 rounded-xl text-xs font-medium border focus:outline-none focus:ring-2 focus:ring-green-500 ${
                 isDark
                   ? 'bg-black/50 border-zinc-700 text-white placeholder:text-zinc-600'
                   : 'bg-slate-50 border-slate-300 text-slate-900 placeholder:text-slate-400 focus:bg-white'
@@ -760,7 +754,7 @@ export const DoctorPrescriptionView: React.FC<DoctorPrescriptionViewProps> = ({
               type="date"
               value={followUpDate}
               onChange={(e) => setFollowUpDate(e.target.value)}
-              className={`w-full px-3.5 py-2 rounded-xl text-xs font-medium border focus:outline-none focus:ring-2 focus:ring-sky-500 ${
+              className={`w-full px-3.5 py-2 rounded-xl text-xs font-medium border focus:outline-none focus:ring-2 focus:ring-green-500 ${
                 isDark
                   ? 'bg-zinc-950 border-zinc-700 text-white'
                   : 'bg-slate-50 border-slate-300 text-slate-900 focus:bg-white'
@@ -781,14 +775,14 @@ export const DoctorPrescriptionView: React.FC<DoctorPrescriptionViewProps> = ({
               : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-100 shadow-xs'
           }`}
         >
-          <Download className="w-4 h-4 text-sky-500" />
+          <Download className="w-4 h-4 text-green-500" />
           <span>Save & Download PDF</span>
         </button>
 
         <button
           type="button"
           onClick={() => handleSubmitPrescription(false)}
-          className="px-6 py-2.5 bg-sky-600 hover:bg-sky-700 text-white rounded-xl text-xs font-semibold flex items-center gap-2 transition-colors shadow-xs"
+          className="px-6 py-2.5 bg-green-600 hover:bg-green-700 text-white rounded-xl text-xs font-semibold flex items-center gap-2 transition-colors shadow-xs"
         >
           <Send className="w-4 h-4" />
           <span>Save & Issue Prescription to Client Phone</span>

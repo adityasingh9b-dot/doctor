@@ -97,7 +97,7 @@ export const DoctorAppointmentsView: React.FC<DoctorAppointmentsViewProps> = ({
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <h2 className="text-base sm:text-lg font-bold tracking-tight flex items-center gap-2">
-            <Calendar className="w-5 h-5 text-sky-500" />
+            <Calendar className="w-5 h-5 text-green-500" />
             <span>All Appointments & OPD Queue</span>
           </h2>
           <p className={`text-xs ${isDark ? 'text-zinc-400' : 'text-slate-500'}`}>
@@ -116,7 +116,7 @@ export const DoctorAppointmentsView: React.FC<DoctorAppointmentsViewProps> = ({
             onClick={() => setActiveFilter('all')}
             className={`px-3.5 py-1.5 rounded-lg transition-all ${
               activeFilter === 'all'
-                ? 'bg-sky-600 text-white font-bold shadow-xs'
+                ? 'bg-green-600 text-white font-bold shadow-xs'
                 : isDark
                 ? 'text-zinc-400 hover:text-white'
                 : 'text-slate-600 hover:text-slate-900'
@@ -129,7 +129,7 @@ export const DoctorAppointmentsView: React.FC<DoctorAppointmentsViewProps> = ({
             onClick={() => setActiveFilter('pending')}
             className={`px-3.5 py-1.5 rounded-lg transition-all ${
               activeFilter === 'pending'
-                ? 'bg-sky-600 text-white font-bold shadow-xs'
+                ? 'bg-green-600 text-white font-bold shadow-xs'
                 : isDark
                 ? 'text-zinc-400 hover:text-white'
                 : 'text-slate-600 hover:text-slate-900'
@@ -151,14 +151,6 @@ export const DoctorAppointmentsView: React.FC<DoctorAppointmentsViewProps> = ({
             Completed ({completedCount})
           </button>
         </div>
-      </div>
-
-      {/* Live Revenue & FCFS Status Strip */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        {/* Today's Revenue Strip */}
-        
-
-        
       </div>
 
       {/* Appointments List */}
@@ -194,8 +186,8 @@ export const DoctorAppointmentsView: React.FC<DoctorAppointmentsViewProps> = ({
                       ? 'border-emerald-900/40 bg-emerald-950/10'
                       : 'border-emerald-200/80 bg-emerald-50/30 shadow-xs'
                     : isDark
-                    ? 'bg-zinc-900 border-zinc-800 hover:border-sky-500/50'
-                    : 'bg-white border-slate-200 hover:border-sky-500/50 shadow-xs'
+                    ? 'bg-zinc-900 border-zinc-800 hover:border-green-500/50'
+                    : 'bg-white border-slate-200 hover:border-green-500/50 shadow-xs'
                 }`}
               >
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
@@ -204,7 +196,7 @@ export const DoctorAppointmentsView: React.FC<DoctorAppointmentsViewProps> = ({
                     <div className="text-center shrink-0">
                       <div
                         className={`w-12 h-12 rounded-xl flex flex-col items-center justify-center text-white shadow-xs ${
-                          isCompleted ? 'bg-emerald-600' : 'bg-sky-600'
+                          isCompleted ? 'bg-emerald-600' : 'bg-green-600'
                         }`}
                       >
                         <span className="text-[9px] uppercase tracking-wider font-semibold opacity-80">
@@ -224,8 +216,8 @@ export const DoctorAppointmentsView: React.FC<DoctorAppointmentsViewProps> = ({
                         <span
                           className={`text-[10px] px-2.5 py-0.5 rounded-full font-bold font-mono tracking-wide ${
                             isDark
-                              ? 'bg-sky-950/60 text-sky-300 border border-sky-800/40'
-                              : 'bg-sky-50 text-sky-700 border border-sky-200'
+                              ? 'bg-green-950/60 text-green-300 border border-green-800/40'
+                              : 'bg-green-50 text-green-700 border border-green-200'
                           }`}
                         >
                           Date: {dateDDMMYYYY}
@@ -255,7 +247,7 @@ export const DoctorAppointmentsView: React.FC<DoctorAppointmentsViewProps> = ({
                         }`}
                       >
                         <span className="flex items-center gap-1 font-mono font-medium">
-                          <Phone className="w-3 h-3 text-sky-500" />
+                          <Phone className="w-3 h-3 text-green-500" />
                           <span>{apt.patientPhone}</span>
                         </span>
                         <span>•</span>
@@ -344,7 +336,7 @@ export const DoctorAppointmentsView: React.FC<DoctorAppointmentsViewProps> = ({
                           : 'bg-slate-100 border-slate-200 text-slate-700 hover:bg-slate-200'
                       }`}
                     >
-                      <FileText className="w-3.5 h-3.5 text-sky-500" />
+                      <FileText className="w-3.5 h-3.5 text-green-500" />
                       <span>Issue Rx</span>
                     </button>
 
