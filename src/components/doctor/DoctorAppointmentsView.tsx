@@ -283,9 +283,12 @@ export const DoctorAppointmentsView: React.FC<DoctorAppointmentsViewProps> = ({
                     </div>
                   </div>
 
-                  {/* Right: Actions */}
+
+
+
+{/* Right: Actions */}
                   <div className="flex items-center flex-wrap gap-2 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100 dark:border-zinc-800">
-                    {/* Primary Button: 'Completed' - triggers confirmation box */}
+                    {/* Primary Button: 'Completed' */}
                     {!isCompleted ? (
                       <button
                         type="button"
@@ -309,7 +312,7 @@ export const DoctorAppointmentsView: React.FC<DoctorAppointmentsViewProps> = ({
                       </div>
                     )}
 
-                    {/* Quick Issue Rx */}
+                    {/* Prescription Button: Pending pr 'Issue Rx', Completed pr 'View Rx' */}
                     <button
                       type="button"
                       onClick={() => {
@@ -334,7 +337,7 @@ export const DoctorAppointmentsView: React.FC<DoctorAppointmentsViewProps> = ({
                       }`}
                     >
                       <FileText className="w-3.5 h-3.5 text-green-500" />
-                      <span>Issue Rx</span>
+                      <span>{isCompleted ? 'View Rx' : 'Issue Rx'}</span>
                     </button>
 
                     {/* Delete Appointment Button */}
@@ -351,6 +354,10 @@ export const DoctorAppointmentsView: React.FC<DoctorAppointmentsViewProps> = ({
                       <Trash2 className="w-4 h-4" />
                     </button>
                   </div>
+
+
+                  
+                  
                 </div>
               </div>
             );
