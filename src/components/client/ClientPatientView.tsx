@@ -806,20 +806,20 @@ const handleSharePrescription = async (rx: Prescription) => {
           </>
         )}
 
-        {/* ===================== APPOINTMENTS ===================== */}
+
+
+
+{/* ===================== APPOINTMENTS ===================== */}
         {activeTab === 'appointments' && (
           <>
-            {pageHeader('Appointments')}
+            {pageHeader('Appointments & OPD Booking')}
             {band}
 
             {activeAppointment ? (
               <>
                 <section className="px-5 py-5">
-                  {sectionTitle('Upcoming Appointment')}
+                  {sectionTitle('Active Consultation')}
                   {renderActiveAppointmentCard('full')}
-                  <p className={`mt-3 text-xs ${ui.faint}`}>
-                    You can book a new appointment once this one is completed or cancelled.
-                  </p>
                 </section>
 
                 {allAppointmentsForDate.length > 0 && (
@@ -827,14 +827,14 @@ const handleSharePrescription = async (rx: Prescription) => {
                     {band}
                     <section className="px-5 py-5">
                       {sectionTitle(
-                        `Queue for ${formatReadableDate(activeAppointment.date)}`,
-                        <span className={`flex items-center gap-1.5 text-xs font-bold ${ui.accent}`}>
+                        `Live Queue status (${formatReadableDate(activeAppointment.date)})`,
+                        <span className={`flex items-center gap-1.5 text-xs font-bold px-3 py-1 rounded-full ${ui.inset}`}>
                           <Users className="w-4 h-4" />
-                          {allAppointmentsForDate.length} Booked
+                          {allAppointmentsForDate.length} Total
                         </span>
                       )}
 
-                      <div className="space-y-2 max-h-64 overflow-y-auto pr-1">
+                      <div className="space-y-2.5 max-h-72 overflow-y-auto pr-1">
                         {allAppointmentsForDate.map((apt) => {
                           const isMe = apt.patientId === client.id || apt.patientPhone === client.phone;
                           const isDone = apt.status === 'completed';
@@ -843,17 +843,17 @@ const handleSharePrescription = async (rx: Prescription) => {
                           return (
                             <div
                               key={apt.id}
-                              className={`px-3.5 py-3 rounded-xl border flex items-center justify-between text-sm transition-colors ${
+                              className={`px-4 py-3.5 rounded-2xl border flex items-center justify-between text-sm transition-all shadow-sm ${
                                 isMe
                                   ? isDark
-                                    ? 'bg-green-950/40 border-green-700 text-green-200 font-bold'
+                                    ? 'bg-green-950/50 border-green-700 text-green-200 font-bold'
                                     : 'bg-green-50 border-green-300 text-green-900 font-bold'
-                                  : `${ui.inset} ${isDark ? 'text-zinc-300' : 'text-slate-700'}`
+                                  : `${ui.card} ${isDark ? 'text-zinc-300' : 'text-slate-700'}`
                               }`}
                             >
-                              <div className="flex items-center gap-3">
+                              <div className="flex items-center gap-3.5">
                                 <span
-                                  className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold text-xs ${
+                                  className={`w-10 h-10 rounded-xl flex items-center justify-center font-black text-sm shadow-sm ${
                                     isMe
                                       ? 'bg-green-600 text-white'
                                       : isDark
@@ -861,23 +861,28 @@ const handleSharePrescription = async (rx: Prescription) => {
                                       : 'bg-slate-200 text-slate-700'
                                   }`}
                                 >
-                                  {isDone ? <CheckCircle className="w-4 h-4" /> : `#${rowSeat}`}
+                                  {isDone ? <CheckCircle className="w-5 h-5 text-green-500" /> : `#${rowSeat}`}
                                 </span>
-                                <span>
-                                  {isMe
-                                    ? `${apt.patientName} (You)`
-                                    : `${apt.patientName.slice(0, 1)}*** ${apt.patientName.split(' ')[1] || ''}`}
-                                </span>
+                                <div>
+                                  <p className="font-bold text-base">
+                                    {isMe
+                                      ? `${apt.patientName} (You)`
+                                      : `${apt.patientName.slice(0, 1)}*** ${apt.patientName.split(' ')[1] || ''}`}
+                                  </p>
+                                  <p className={`text-xs ${ui.muted}`}>
+                                    {apt.reasonForVisit || 'General Consultation'}
+                                  </p>
+                                </div>
                               </div>
 
                               <span
-                                className={`text-[10px] px-2.5 py-1 rounded-full uppercase font-semibold ${
+                                className={`text-xs px-3 py-1.5 rounded-full uppercase font-bold tracking-wider ${
                                   apt.status === 'completed'
                                     ? 'bg-green-500/20 text-green-600'
                                     : 'bg-amber-500/20 text-amber-600'
                                 }`}
                               >
-                                {apt.status === 'completed' ? 'Done' : 'Waiting'}
+                                {apt.status === 'completed' ? 'Completed' : 'In Queue'}
                               </span>
                             </div>
                           );
@@ -888,92 +893,92 @@ const handleSharePrescription = async (rx: Prescription) => {
                 )}
               </>
             ) : (
-              <section className="px-5 py-5">
-                {sectionTitle('Book Doctor Appointment')}
-                <p className={`-mt-1 mb-4 text-sm ${ui.muted}`}>
-                  You have no active booking. Pick a date and tell us the reason for your visit to reserve your seat.
-                </p>
-
-                {/* Seat preview */}
-                <div className={`p-4 rounded-xl border flex items-center justify-between ${ui.inset}`}>
-                  <div>
-                    <span className={`text-[11px] uppercase font-bold block ${ui.muted}`}>
-                      Next Available Seat
-                    </span>
-                    <span className="text-sm font-bold">For {formatReadableDate(bookingDate)}</span>
+              <section className="px-5 py-6">
+                <div className={`p-6 rounded-3xl border shadow-md mb-6 ${ui.card} bg-gradient-to-br from-green-500/10 via-transparent to-transparent`}>
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className="w-12 h-12 rounded-2xl bg-green-600 text-white flex items-center justify-center shadow-md">
+                      <CalendarPlus className="w-6 h-6" />
+                    </div>
+                    <div>
+                      <h2 className="text-xl font-black tracking-tight">Instant OPD Booking</h2>
+                      <p className={`text-xs font-semibold ${ui.accent}`}>Express Queue Allocation</p>
+                    </div>
                   </div>
-                  <div className="px-4 py-2 bg-green-600 text-white rounded-xl text-sm font-black text-center shadow-sm">
-                    Seat #{nextAvailableSeatNumber}
+                  <p className={`text-sm mt-2 ${ui.muted}`}>
+                    Secure your priority consultation slot instantly with {clinicConfig.doctorName}. Zero waiting hassles.
+                  </p>
+                </div>
+
+                {/* Big Professional Seat Preview Card */}
+                <div className={`p-5 rounded-2xl border-2 border-green-500/40 flex items-center justify-between shadow-sm ${ui.tint}`}>
+                  <div>
+                    <span className={`text-xs uppercase font-extrabold tracking-wider block ${ui.accent}`}>
+                      Assigned Token
+                    </span>
+                    <span className="text-base font-black">Seat #{nextAvailableSeatNumber}</span>
+                    <span className={`block text-xs font-medium mt-0.5 ${ui.muted}`}>For {formatReadableDate(bookingDate)}</span>
+                  </div>
+                  <div className="px-5 py-3 bg-green-600 text-white rounded-2xl text-lg font-black text-center shadow-md">
+                    {bookingTime}
                   </div>
                 </div>
 
                 {bookingError && (
                   <div
-                    className={`mt-4 p-3.5 rounded-xl text-sm border flex items-start gap-2.5 ${
+                    className={`mt-4 p-4 rounded-2xl text-sm border flex items-start gap-3 shadow-md ${
                       isDark
-                        ? 'bg-rose-950/40 border-rose-800/60 text-rose-300'
+                        ? 'bg-rose-950/50 border-rose-800 text-rose-300'
                         : 'bg-rose-50 border-rose-200 text-rose-700'
                     }`}
                   >
-                    <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
-                    <span>{bookingError}</span>
+                    <AlertTriangle className="w-5 h-5 shrink-0 mt-0.5" />
+                    <span className="font-medium">{bookingError}</span>
                   </div>
                 )}
 
-                <form onSubmit={handleConfirmNextDayBooking} className="mt-4 space-y-4">
-                  <div>
-                    <label className="block text-sm font-semibold mb-1.5">Appointment Time *</label>
-                    
-                    <div
-                      className={`w-full px-4 py-3 rounded-xl text-sm font-medium border flex items-center justify-between ${ui.input}`}
-                    >
-                      <span className="flex items-center gap-2">
-                        <Clock className={`w-4 h-4 ${ui.accent}`} />
+                <form onSubmit={handleConfirmNextDayBooking} className="mt-6 space-y-5">
+                  <div className={`p-4 rounded-2xl border ${ui.card}`}>
+                    <label className="block text-xs font-bold uppercase tracking-wider mb-2 text-zinc-400">
+                      Scheduled Slot Details
+                    </label>
+                    <div className={`w-full px-4 py-3.5 rounded-xl text-base font-bold border flex items-center justify-between ${ui.inset}`}>
+                      <span className="flex items-center gap-2.5">
+                        <Clock className={`w-5 h-5 ${ui.accent}`} />
                         {bookingTime}
                       </span>
-                      <span className={ui.faint}>{bookingDayLabel}</span>
+                      <span className={`text-xs px-2.5 py-1 rounded-lg font-extrabold ${ui.accent} ${ui.inset}`}>
+                        {bookingDayLabel}
+                      </span>
                     </div>
-
-                    <p className={`text-xs mt-1.5 ${ui.faint}`}>
-                      {!bookingSlot.isToday && 'Clinic booking hours are over for today (9:00 AM - 6:00 PM), so your appointment is for the next working day. '}
+                    <p className={`text-xs mt-2 font-medium ${ui.faint}`}>
+                      {!bookingSlot.isToday && 'Clinic hours ended for today (9 AM - 6 PM). Booked for next working day. '}
                       {pendingForBooking === 0
-                        ? bookingSlot.isToday
-                          ? 'No patients ahead - your slot is the current time.'
-                          : 'No patients ahead - your slot is the first slot of the day.'
-                        : `${pendingForBooking} patient${pendingForBooking === 1 ? '' : 's'} ahead (15 mins each) - your slot is ${bookingTime}.`}
+                        ? 'No active queue ahead - you get the immediate slot.'
+                        : `${pendingForBooking} patient(s) ahead (15 mins interval).`}
                     </p>
                   </div>
 
                   <div>
-                    <label className="block text-sm font-semibold mb-1.5">
-                      Reason for Visit / Symptoms *
+                    <label className="block text-xs font-bold uppercase tracking-wider mb-2 text-zinc-400">
+                      Reason for Consultation / Symptoms *
                     </label>
                     <textarea
                       required
                       rows={3}
                       value={reason}
                       onChange={(e) => setReason(e.target.value)}
-                      placeholder="e.g. Follow-up consultation, persistent cough, fever since 2 days..."
-                      className={`w-full px-4 py-3 rounded-xl text-sm border focus:outline-none focus:ring-2 focus:ring-green-500 ${ui.input}`}
+                      placeholder="e.g. High fever since 2 days, persistent headache..."
+                      className={`w-full px-4 py-3.5 rounded-2xl text-sm font-medium border focus:outline-none focus:ring-2 focus:ring-green-500 shadow-sm ${ui.input}`}
                     />
                   </div>
 
-                  <div className={`p-3.5 rounded-xl border text-xs space-y-1 ${ui.inset} ${ui.muted}`}>
-                    <div className={`flex items-center gap-1.5 font-semibold ${ui.accent}`}>
-                      <Sparkles className="w-3.5 h-3.5" />
-                      <span>First Come, First Served</span>
-                    </div>
-                    <p>
-                      Seats are allotted strictly in the order bookings are made. You can cancel anytime before your turn to release your seat.
-                    </p>
-                  </div>
-
+                  {/* Big Medanta Style CTA Button */}
                   <button
                     type="submit"
-                    className="w-full py-3.5 px-4 bg-green-600 hover:bg-green-700 text-white font-semibold text-sm rounded-xl shadow-sm flex items-center justify-center gap-2 transition-colors"
+                    className="w-full py-4 px-6 bg-green-600 hover:bg-green-700 text-white font-extrabold text-base rounded-2xl shadow-lg flex items-center justify-center gap-3 transition-all transform active:scale-95"
                   >
-                    <CalendarPlus className="w-4 h-4" />
-                    <span>Confirm Booking & Get Seat #{nextAvailableSeatNumber}</span>
+                    <CalendarPlus className="w-5 h-5" />
+                    <span>Confirm & Book Seat #{nextAvailableSeatNumber}</span>
                   </button>
                 </form>
               </section>
@@ -981,7 +986,7 @@ const handleSharePrescription = async (rx: Prescription) => {
 
             {band}
             <section className="px-5 py-5 space-y-3">
-              {sectionTitle('Recent Appointments')}
+              {sectionTitle('Appointment History')}
 
               {latestCompleted ? (
                 <>
@@ -992,11 +997,11 @@ const handleSharePrescription = async (rx: Prescription) => {
                       <button
                         type="button"
                         onClick={() => setShowPastAppointments((prev) => !prev)}
-                        className={`w-full rounded-xl border-2 px-4 py-3.5 text-sm font-semibold flex items-center justify-between transition-colors ${ui.outlineButton}`}
+                        className={`w-full rounded-2xl border-2 px-5 py-4 text-sm font-extrabold flex items-center justify-between transition-all shadow-sm ${ui.outlineButton}`}
                       >
                         <span className="flex items-center gap-3">
                           <CalendarCheck className="w-5 h-5" />
-                          View Past Appointments ({completedAppointments.length - 1})
+                          View Past Visits ({completedAppointments.length - 1})
                         </span>
                         <ChevronRight
                           className={`w-5 h-5 transition-transform ${showPastAppointments ? 'rotate-90' : ''}`}
@@ -1004,11 +1009,11 @@ const handleSharePrescription = async (rx: Prescription) => {
                       </button>
 
                       {showPastAppointments && (
-                        <div className="space-y-2">
+                        <div className="space-y-2.5 pt-2">
                           {completedAppointments.slice(1).map((apt) => (
                             <div
                               key={apt.id}
-                              className={`rounded-xl border p-4 flex items-center justify-between gap-3 ${ui.card}`}
+                              className={`rounded-2xl border p-4 flex items-center justify-between gap-3 shadow-sm ${ui.card}`}
                             >
                               <div className="min-w-0">
                                 <p className="text-sm font-bold">{formatReadableDate(apt.date)}</p>
@@ -1016,16 +1021,16 @@ const handleSharePrescription = async (rx: Prescription) => {
                                   {apt.reasonForVisit || clinicConfig.doctorName}
                                 </p>
                               </div>
-                              <div className="flex items-center gap-2 shrink-0">
-                                <span className="text-[10px] px-2.5 py-1 rounded-full uppercase font-semibold bg-green-500/20 text-green-600">
+                              <div className="flex items-center gap-3 shrink-0">
+                                <span className="text-xs px-3 py-1 rounded-full font-extrabold bg-green-500/20 text-green-600">
                                   Seat #{apt.tokenNumber}
                                 </span>
                                 <button
                                   type="button"
                                   onClick={() => openPrescriptionFor(apt.date)}
-                                  className={`text-xs font-semibold hover:underline ${ui.accent}`}
+                                  className={`text-xs font-bold hover:underline ${ui.accent}`}
                                 >
-                                  Prescription
+                                  View Rx
                                 </button>
                               </div>
                             </div>
@@ -1036,9 +1041,9 @@ const handleSharePrescription = async (rx: Prescription) => {
                   )}
                 </>
               ) : (
-                <div className={`rounded-2xl border p-6 text-center ${ui.inset}`}>
-                  <CalendarCheck className={`w-9 h-9 mx-auto ${ui.faint}`} />
-                  <p className={`mt-2 text-sm ${ui.muted}`}>No past appointments yet.</p>
+                <div className={`rounded-3xl border p-8 text-center shadow-sm ${ui.inset}`}>
+                  <CalendarCheck className={`w-10 h-10 mx-auto ${ui.faint}`} />
+                  <p className={`mt-3 text-sm font-semibold ${ui.muted}`}>No past appointment records found.</p>
                 </div>
               )}
             </section>
@@ -1047,134 +1052,126 @@ const handleSharePrescription = async (rx: Prescription) => {
 
 
 
+
 {/* ===================== RECORDS ===================== */}
         {activeTab === 'records' && (
           <>
-            {pageHeader('My Health Records')}
+            {pageHeader('My Prescriptions & Records')}
             {band}
 
             <section className="px-5 py-5 space-y-5">
               {myPrescriptions.length === 0 ? (
-                <div className={`rounded-2xl border p-8 text-center space-y-3 ${ui.inset}`}>
-                  <FileText className={`w-10 h-10 mx-auto ${ui.faint}`} />
+                <div className={`rounded-3xl border p-10 text-center space-y-4 shadow-sm ${ui.inset}`}>
+                  <FileText className={`w-12 h-12 mx-auto ${ui.faint}`} />
                   <div>
-                    <h3 className="text-base font-bold">No Prescriptions Issued Yet</h3>
-                    <p className={`text-sm max-w-xs mx-auto mt-1 ${ui.muted}`}>
-                      Once {clinicConfig.doctorName} prescribes your medicines, they will appear here with medicine reminders and PDF downloads.
+                    <h3 className="text-lg font-black">No Prescriptions Available</h3>
+                    <p className={`text-sm max-w-xs mx-auto mt-1.5 ${ui.muted}`}>
+                      Prescriptions issued by {clinicConfig.doctorName} will appear here instantly with direct PDF downloads.
                     </p>
                   </div>
                 </div>
               ) : (
                 prescriptionGroups.map((group) => (
-                  <div key={group.label} className="space-y-3">
-                    <h2 className={`text-xl font-bold ${ui.muted}`}>{group.label}</h2>
+                  <div key={group.label} className="space-y-3.5">
+                    <h2 className={`text-lg font-black tracking-tight ${ui.muted}`}>{group.label}</h2>
 
                     {group.items.map((rx) => {
                       const isOpen = expandedRxId === rx.id;
                       return (
-                        <div key={rx.id} className={`rounded-2xl border overflow-hidden ${ui.card}`}>
+                        <div key={rx.id} className={`rounded-3xl border shadow-md overflow-hidden transition-all ${ui.card}`}>
                           <button
                             type="button"
                             onClick={() => setExpandedRxId(isOpen ? null : rx.id)}
                             aria-expanded={isOpen}
-                            className="w-full flex items-center gap-4 p-4 text-left"
+                            className="w-full flex items-center gap-4 p-5 text-left hover:bg-zinc-50/50 dark:hover:bg-zinc-800/50 transition-colors"
                           >
                             <div
-                              className={`w-14 h-14 shrink-0 rounded-xl flex items-center justify-center ${ui.iconTile}`}
+                              className={`w-14 h-14 shrink-0 rounded-2xl flex items-center justify-center shadow-sm ${ui.iconTile}`}
                             >
-                              <FileText className={`w-6 h-6 ${ui.accent}`} />
+                              <FileText className={`w-7 h-7 ${ui.accent}`} />
                             </div>
 
                             <div className="min-w-0 flex-1">
-                              <p className={`text-xs ${ui.muted}`}>Advised by: {clinicConfig.doctorName}</p>
-                              <p className="text-base font-bold leading-snug">
+                              <p className={`text-xs font-bold ${ui.muted}`}>Consultation Record</p>
+                              <p className="text-lg font-black leading-snug">
                                 Prescription #{rx.id.slice(-6)}
                               </p>
-                              <p className={`mt-0.5 text-sm flex items-center gap-1.5 flex-wrap ${ui.muted}`}>
-                                <span>{formatReadableDate(rx.date)}</span>
-                                <span>|</span>
-                                <span
-                                  className={`px-1.5 py-0.5 rounded text-[11px] font-semibold ${
-                                    isDark ? 'bg-green-950/60 text-green-300' : 'bg-green-50 text-green-700'
-                                  }`}
-                                >
-                                  Rx
-                                </span>
-                                <span>
-                                  {rx.medicines.length} medicine{rx.medicines.length === 1 ? '' : 's'}
+                              <p className={`mt-1 text-xs flex items-center gap-2 flex-wrap ${ui.muted}`}>
+                                <span className="font-semibold">{formatReadableDate(rx.date)}</span>
+                                <span>•</span>
+                                <span className="font-extrabold text-green-600 bg-green-500/10 px-2 py-0.5 rounded-md">
+                                  {rx.medicines.length} Medicine{rx.medicines.length === 1 ? '' : 's'}
                                 </span>
                               </p>
                             </div>
 
-                            <ChevronDown
-                              className={`w-5 h-5 shrink-0 transition-transform ${ui.muted} ${
-                                isOpen ? 'rotate-180' : ''
-                              }`}
-                            />
+                            <div className={`w-10 h-10 rounded-full flex items-center justify-center ${ui.inset}`}>
+                              <ChevronDown
+                                className={`w-5 h-5 transition-transform duration-300 ${ui.muted} ${
+                                  isOpen ? 'rotate-180' : ''
+                                }`}
+                              />
+                            </div>
                           </button>
 
                           {isOpen && (
-                            <div className={`border-t px-4 py-4 space-y-4 ${ui.rowBorder}`}>
+                            <div className={`border-t px-5 py-5 space-y-5 ${ui.rowBorder} ${ui.inset}`}>
                               {rx.diagnosis && (
-                                <div className={`p-3.5 rounded-xl border text-sm ${ui.inset}`}>
-                                  <span className={`block text-xs font-semibold ${ui.muted}`}>
+                                <div className={`p-4 rounded-2xl border shadow-sm ${ui.card}`}>
+                                  <span className={`block text-xs font-extrabold uppercase tracking-wider mb-1 ${ui.muted}`}>
                                     Provisional Diagnosis
                                   </span>
-                                  <span className="font-bold">{rx.diagnosis}</span>
+                                  <span className="font-black text-base">{rx.diagnosis}</span>
                                 </div>
                               )}
 
                               {/* Medicines List */}
-                              <div className="space-y-2.5">
-                                <span className="text-xs font-bold uppercase tracking-wider block">
-                                  Prescribed Medicines ({rx.medicines.length})
+                              <div className="space-y-3">
+                                <span className="text-xs font-black uppercase tracking-wider block text-zinc-400">
+                                  Prescribed Medication ({rx.medicines.length})
                                 </span>
 
                                 {rx.medicines.map((med, idx) => (
                                   <div
                                     key={med.id || idx}
-                                    className={`p-3.5 rounded-xl border space-y-2.5 text-sm ${ui.inset}`}
+                                    className={`p-4 rounded-2xl border space-y-3 shadow-sm ${ui.card}`}
                                   >
-                                    <div className="flex items-start justify-between gap-2">
+                                    <div className="flex items-start justify-between gap-3">
                                       <div className="min-w-0">
-                                        <strong className="block font-bold">{med.name}</strong>
+                                        <strong className="block font-black text-base">{med.name}</strong>
                                         {med.description && (
-                                          <p className={`text-xs mt-0.5 ${ui.muted}`}>{med.description}</p>
+                                          <p className={`text-xs mt-1 ${ui.muted}`}>{med.description}</p>
                                         )}
                                       </div>
 
                                       <span
-                                        className={`shrink-0 inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold ${
-                                          isDark ? 'bg-green-950/60 text-green-300' : 'bg-green-100 text-green-700'
+                                        className={`shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-extrabold ${
+                                          isDark ? 'bg-green-950 text-green-300' : 'bg-green-100 text-green-800'
                                         }`}
                                       >
-                                        <Clock className="w-3 h-3" />
+                                        <Clock className="w-3.5 h-3.5" />
                                         {med.times && med.times.length > 0 ? med.times.join(', ') : '08:00 AM'}
                                       </span>
                                     </div>
 
                                     <div className="flex flex-wrap items-center gap-2 text-xs">
-                                      <span
-                                        className={`px-2 py-1 rounded-md font-medium ${
-                                          isDark ? 'bg-zinc-800 text-zinc-300' : 'bg-slate-200 text-slate-700'
-                                        }`}
-                                      >
-                                        Timing: {med.timing === 'before' ? 'Before food (Khali pet)' : 'After food (Khane ke baad)'}
+                                      <span className={`px-2.5 py-1 rounded-lg font-bold ${isDark ? 'bg-zinc-800 text-zinc-300' : 'bg-slate-200 text-slate-800'}`}>
+                                        {med.timing === 'before' ? 'Before Food (Khali Pet)' : 'After Food (Khane ke Baad)'}
                                       </span>
 
-                                      <div className="flex items-center gap-1">
+                                      <div className="flex items-center gap-1.5">
                                         {med.dosageSlots?.breakfast && (
-                                          <span className="px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-700 text-[10px] font-bold">
+                                          <span className="px-2 py-0.5 rounded-md bg-amber-500/20 text-amber-700 font-extrabold text-[11px]">
                                             Breakfast
                                           </span>
                                         )}
                                         {med.dosageSlots?.lunch && (
-                                          <span className="px-1.5 py-0.5 rounded bg-green-500/20 text-green-700 text-[10px] font-bold">
+                                          <span className="px-2 py-0.5 rounded-md bg-green-500/20 text-green-700 font-extrabold text-[11px]">
                                             Lunch
                                           </span>
                                         )}
                                         {med.dosageSlots?.dinner && (
-                                          <span className="px-1.5 py-0.5 rounded bg-indigo-500/20 text-indigo-700 text-[10px] font-bold">
+                                          <span className="px-2 py-0.5 rounded-md bg-indigo-500/20 text-indigo-700 font-extrabold text-[11px]">
                                             Dinner
                                           </span>
                                         )}
@@ -1185,32 +1182,32 @@ const handleSharePrescription = async (rx: Prescription) => {
                               </div>
 
                               {rx.generalAdvice && (
-                                <div className="text-sm">
-                                  <strong className={`block text-xs mb-0.5 ${ui.muted}`}>Doctor Advice</strong>
-                                  <p className={`text-sm ${isDark ? 'text-zinc-300' : 'text-slate-700'}`}>
+                                <div className={`p-4 rounded-2xl border ${ui.card}`}>
+                                  <strong className={`block text-xs uppercase font-extrabold tracking-wider mb-1 ${ui.muted}`}>Doctor Advice</strong>
+                                  <p className={`text-sm font-semibold ${isDark ? 'text-zinc-200' : 'text-slate-800'}`}>
                                     {rx.generalAdvice}
                                   </p>
                                 </div>
                               )}
 
-                              {/* Download & Share Action Buttons */}
-                              <div className="grid grid-cols-2 gap-2">
+                              {/* Big Medanta Style Action Buttons */}
+                              <div className="grid grid-cols-2 gap-3 pt-2">
                                 <button
                                   type="button"
                                   onClick={() => downloadPrescriptionPDF(rx)}
-                                  className="py-3 px-3 rounded-xl text-xs font-semibold bg-green-600 hover:bg-green-700 text-white flex items-center justify-center gap-1.5 shadow-sm transition-colors"
+                                  className="py-4 px-4 rounded-2xl text-xs font-black bg-green-600 hover:bg-green-700 text-white flex items-center justify-center gap-2 shadow-md transition-all transform active:scale-95"
                                 >
                                   <Download className="w-4 h-4 shrink-0" />
                                   <span>Download PDF</span>
                                 </button>
 
                                 <button
-  type="button"
-  onClick={() => handleSharePrescription(rx)}
-  className={`py-3 px-3 rounded-xl ...`}
->
+                                  type="button"
+                                  onClick={() => handleSharePrescription(rx)}
+                                  className={`py-4 px-4 rounded-2xl text-xs font-black border flex items-center justify-center gap-2 shadow-sm transition-all transform active:scale-95 ${ui.tintButton}`}
+                                >
                                   <Share2 className="w-4 h-4 shrink-0" />
-                                  <span>Share Prescription</span>
+                                  <span>Share Details</span>
                                 </button>
                               </div>
 
