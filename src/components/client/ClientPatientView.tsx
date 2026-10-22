@@ -236,11 +236,16 @@ export const ClientPatientView: React.FC<ClientPatientViewProps> = ({
         .sort((a, b) => a.bookedAt - b.bookedAt)
     : [];
 
+  // Pending patients (waiting / in-cabin) of the same date - completed patients are not counted
+  const pendingForActiveDate = allAppointmentsForDate.filter((a) => isPendingStatus(a.status));
+
+  // Patients still ahead of me. Drops live as the doctor marks patients 'completed'.
   const waitingAheadCount = activeAppointment
-    ? allAppointmentsForDate.filter(
-        (a) => a.status === 'waiting' && a.bookedAt < activeAppointment.bookedAt
-      ).length
+    ? pendingForActiveDate.filter((a) => a.bookedAt < activeAppointment.bookedAt).length
     : 0;
+
+  // Live seat: Seat 3 -> 2 -> 1 as patients ahead get completed
+  const liveSeatNumber = waitingAheadCount + 1;
 
   // Next available token for booking date
   // Only pending patients take a seat ahead of you; completed ones are not counted.
@@ -360,7 +365,7 @@ const handleSharePrescription = async (rx: Prescription) => {
     // A patient cannot hold more than one active appointment at a time.
     if (activeAppointment) {
       setBookingError(
-        `You already have an active appointment (Seat #${activeAppointment.tokenNumber} for ${formatReadableDate(
+        `You already have an active appointment (Seat #${liveSeatNumber} for ${formatReadableDate(
           activeAppointment.date
         )}). A person cannot book more than 1 appointment at the same time. If you wish to book another date, please cancel your existing appointment first.`
       );
@@ -410,7 +415,7 @@ const handleSharePrescription = async (rx: Prescription) => {
 
   const handleConfirmCancelAppointment = () => {
     if (!activeAppointment) return;
-    const seatNum = activeAppointment.tokenNumber;
+    const seatNum = liveSeatNumber;
     onDeleteAppointment(activeAppointment.id);
     setIsCancelModalOpen(false);
     setBookingSuccessToast(`Appointment (Seat #${seatNum}) was cancelled. Your seat was released and patients below have moved up.`);
@@ -492,7 +497,7 @@ const handleSharePrescription = async (rx: Prescription) => {
 
           <div className="w-16 h-16 shrink-0 rounded-xl bg-green-600 text-white flex flex-col items-center justify-center shadow-sm">
             <span className="text-[10px] uppercase font-bold tracking-widest opacity-80">Seat</span>
-            <span className="text-2xl font-black leading-none">#{activeAppointment.tokenNumber}</span>
+            <span className="text-2xl font-black leading-none">#{liveSeatNumber}</span>
           </div>
         </div>
 
@@ -516,7 +521,7 @@ const handleSharePrescription = async (rx: Prescription) => {
           <div>
             <p className={`text-xs ${ui.muted}`}>Position in List</p>
             <p className="font-bold">
-              Seat #{activeAppointment.tokenNumber} of {allAppointmentsForDate.length}
+              Seat #{liveSeatNumber} of {pendingForActiveDate.length}
             </p>
           </div>
         </div>
@@ -549,7 +554,7 @@ const handleSharePrescription = async (rx: Prescription) => {
                 <span>Cancel Appointment</span>
               </button>
               <p className={`mt-1.5 text-xs text-center ${ui.faint}`}>
-                Releases Seat #{activeAppointment.tokenNumber} so patients behind move up in the queue
+                Releases Seat #{liveSeatNumber} so patients behind move up in the queue
               </p>
             </div>
           )
@@ -832,6 +837,9 @@ const handleSharePrescription = async (rx: Prescription) => {
                       <div className="space-y-2 max-h-64 overflow-y-auto pr-1">
                         {allAppointmentsForDate.map((apt) => {
                           const isMe = apt.patientId === client.id || apt.patientPhone === client.phone;
+                          const isDone = apt.status === 'completed';
+                          const rowSeat =
+                            pendingForActiveDate.filter((p) => p.bookedAt < apt.bookedAt).length + 1;
                           return (
                             <div
                               key={apt.id}
@@ -853,7 +861,7 @@ const handleSharePrescription = async (rx: Prescription) => {
                                       : 'bg-slate-200 text-slate-700'
                                   }`}
                                 >
-                                  #{apt.tokenNumber}
+                                  {isDone ? <CheckCircle className="w-4 h-4" /> : `#${rowSeat}`}
                                 </span>
                                 <span>
                                   {isMe
@@ -1367,7 +1375,7 @@ const handleSharePrescription = async (rx: Prescription) => {
               <div>
                 <h3 className="text-base font-bold">Cancel Appointment?</h3>
                 <p className={`text-sm ${ui.muted}`}>
-                  Release Seat #{activeAppointment.tokenNumber} for {formatReadableDate(activeAppointment.date)}.
+                  Release Seat #{liveSeatNumber} for {formatReadableDate(activeAppointment.date)}.
                 </p>
               </div>
             </div>
