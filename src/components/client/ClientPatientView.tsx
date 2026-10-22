@@ -223,36 +223,60 @@ export const ClientPatientView: React.FC<ClientPatientViewProps> = ({
  
  
 const handleSharePrescription = async (rx: Prescription) => {
-    try {
-      // 1. Generate PDF blob using jspdf output format
-      const doc = downloadPrescriptionPDF(rx, { returnPdfInstance: true });
-      if (!doc) {
-        alert('Could not generate PDF for sharing.');
-        return;
-      }
-      
-      const pdfBlob = doc.output('blob');
-      const fileName = `Prescription-${rx.id.slice(-6)}.pdf`;
-      const pdfFile = new File([pdfBlob], fileName, { type: 'application/pdf' });
+    // Clean formatted text template for fallback or text sharing
+    const shareText = 
+      `📋 *PRESCRIPTION SUMMARY*\n` +
+      `----------------------------------\n` +
+      `🏥 *${clinicConfig.name}*\n` +
+      `👨‍⚕️ Doctor: ${clinicConfig.doctorName}\n` +
+      `📅 Date: ${formatReadableDate(rx.date)}\n` +
+      `🔖 Rx ID: #${rx.id.slice(-6)}\n` +
+      `${rx.diagnosis ? `🩺 Diagnosis: ${rx.diagnosis}\n` : ''}` +
+      `----------------------------------\n` +
+      `💊 *Prescribed Medicines:*\n` +
+      rx.medicines.map((m, idx) => `  ${idx + 1}. *${m.name}* (${m.timing === 'before' ? 'Before food' : 'After food'})${m.times?.length ? ` - [${m.times.join(', ')}]` : ''}`).join('\n') +
+      `${rx.generalAdvice ? `\n\n💡 *Advice:* ${rx.generalAdvice}` : ''}\n` +
+      `----------------------------------`;
 
-      // 2. Check if file sharing is supported by browser/device
-      if (navigator.canShare && navigator.canShare({ files: [pdfFile] })) {
-        await navigator.share({
-          title: `Prescription #${rx.id.slice(-6)}`,
-          text: `Official prescription from ${clinicConfig.doctorName} (${clinicConfig.name}) dated ${formatReadableDate(rx.date)}`,
-          files: [pdfFile],
-        });
-      } else if (navigator.share) {
-        // Fallback to text sharing if file sharing is restricted on the current device
-        await navigator.share({
-          title: `Prescription #${rx.id.slice(-6)}`,
-          text: `Prescription #${rx.id.slice(-6)} from ${clinicConfig.doctorName} (${clinicConfig.name})\nDate: ${formatReadableDate(rx.date)}\nMedicines: ${rx.medicines.map(m => m.name).join(', ')}`,
-        });
-      } else {
-        alert('File sharing is not supported on this browser. Please use the Download button instead.');
+    try {
+      // 1. Try generating and sharing PDF file first
+      const doc = downloadPrescriptionPDF(rx, { returnPdfInstance: true });
+      if (doc) {
+        const pdfBlob = doc.output('blob');
+        const fileName = `Prescription-${rx.id.slice(-6)}.pdf`;
+        const pdfFile = new File([pdfBlob], fileName, { type: 'application/pdf' });
+
+        if (navigator.canShare && navigator.canShare({ files: [pdfFile] })) {
+          await navigator.share({
+            title: `Prescription #${rx.id.slice(-6)}`,
+            text: `Official prescription from ${clinicConfig.doctorName} dated ${formatReadableDate(rx.date)}`,
+            files: [pdfFile],
+          });
+          return;
+        }
       }
-    } catch (error) {
-      console.log('Error sharing prescription PDF:', error);
+    } catch (pdfErr) {
+      console.log('PDF sharing skipped/failed, falling back to text share:', pdfErr);
+    }
+
+    // 2. Fallback: Share formatted text directly if PDF sharing fails or isn't supported
+    try {
+      if (navigator.share) {
+        await navigator.share({
+          title: `Prescription #${rx.id.slice(-6)}`,
+          text: shareText,
+        });
+      } else if (navigator.clipboard) {
+        await navigator.clipboard.writeText(shareText);
+        alert('Prescription text details copied to clipboard!');
+      } else {
+        alert('Sharing is not supported on this browser.');
+      }
+    } catch (textErr: any) {
+      // Ignore AbortError if user simply cancelled the share dialog
+      if (textErr.name !== 'AbortError') {
+        console.log('Error sharing prescription text:', textErr);
+      }
     }
   };
  
