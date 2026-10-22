@@ -1260,16 +1260,7 @@ const handleSharePrescription = async (rx: Prescription) => {
               <ThemeToggle />
             </div>
 
-            <button
-              type="button"
-              onClick={onLogout}
-              className={`flex items-center gap-3 px-5 py-4 text-base font-semibold text-left transition-colors border-b ${ui.rowBorder} ${
-                isDark ? 'text-rose-300 hover:bg-rose-950/30' : 'text-rose-600 hover:bg-rose-50'
-              }`}
-            >
-              <LogOut className="w-5 h-5" />
-              <span>Sign Out</span>
-            </button>
+            
           </>
         )}
       </div>
