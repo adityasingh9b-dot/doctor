@@ -1187,9 +1187,7 @@ const handleSharePrescription = async (rx: Prescription) => {
                 {initials || <User className="w-10 h-10" />}
               </div>
               <h1 className="mt-4 text-xl font-bold tracking-tight">{client.name}</h1>
-              <p className={`mt-1 text-sm ${ui.muted}`}>
-                ID: {String(client.id).slice(-8).toUpperCase()}
-              </p>
+              
               <p className={`text-sm ${ui.muted}`}>{client.phone}</p>
 
               <div className="mt-5 grid grid-cols-2 gap-3 text-left">
