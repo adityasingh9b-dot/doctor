@@ -50,23 +50,8 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
       return;
     }
 
-    // 3. Neither matched
-    setErrorMsg(
-      'Invalid Phone Number or Password. For Doctor Admin, enter Phone: 9369250645 and Password: 1234.'
-    );
-  };
-
-  const handleFillAdmin = () => {
-    setPhone(DOCTOR_ADMIN.phone);
-    setPassword(DOCTOR_ADMIN.passkey);
-    setErrorMsg('');
-  };
-
-  const handleFillClient = () => {
-    const demo = clients[0] || { phone: '9811122334', passkey: '2222' };
-    setPhone(demo.phone);
-    setPassword(demo.passkey);
-    setErrorMsg('');
+    // 3. Neither matched - Secured professional error message
+    setErrorMsg('Please enter correct details as sent by your Doctor.');
   };
 
   const isDark = theme === 'dark';
@@ -77,7 +62,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
         isDark ? 'bg-black text-zinc-100' : 'bg-gradient-to-b from-green-50 via-white to-white text-slate-900'
       }`}
     >
-      {/* Decorative accent glow — single deliberate touch, kept quiet */}
+      {/* Decorative accent glow */}
       <div
         aria-hidden="true"
         className={`pointer-events-none absolute -top-24 left-1/2 -translate-x-1/2 w-[32rem] h-[32rem] rounded-full blur-3xl ${
@@ -85,19 +70,24 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
         }`}
       />
 
-      {/* Top Header Bar with Brand and Theme Toggle */}
+      {/* Top Header Bar */}
       <header
-        className={`relative max-w-md w-full mx-auto flex items-center justify-between py-3 px-4 rounded-2xl border shadow-sm transition-colors ${
+        className={`relative max-w-md w-full mx-auto flex items-center justify-between py-3.5 px-5 rounded-2xl border shadow-sm transition-colors ${
           isDark ? 'bg-zinc-900 border-zinc-800 text-white' : 'bg-white/90 backdrop-blur-sm border-slate-200 text-slate-900'
         }`}
       >
-        <div className="flex items-center gap-2">
-          <div className="w-9 h-9 rounded-xl bg-green-600 text-white flex items-center justify-center shadow-xs">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-green-600 text-white flex items-center justify-center shadow-md">
             <Stethoscope className="w-5 h-5" />
           </div>
-          <span className={`font-bold text-sm tracking-tight ${isDark ? 'text-white' : 'text-slate-900'}`}>
-            Dr. Doctor Clinic
-          </span>
+          <div>
+            <span className={`font-black text-base tracking-tight block ${isDark ? 'text-white' : 'text-slate-900'}`}>
+              Dr. Doctor Clinic
+            </span>
+            <span className="text-[10px] text-green-600 dark:text-green-400 font-bold uppercase tracking-wider">
+              OPD Portal
+            </span>
+          </div>
         </div>
 
         <div className="flex items-center gap-2">
@@ -106,9 +96,9 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
       </header>
 
       {/* Center Main Login Card */}
-      <main className="relative max-w-md w-full mx-auto my-auto py-6 space-y-5">
-        {/* Feature strip — grounded in the clinic's actual capabilities */}
-        <div className="grid grid-cols-3 gap-2">
+      <main className="relative max-w-md w-full mx-auto my-auto py-6 space-y-6">
+        {/* Feature strip */}
+        <div className="grid grid-cols-3 gap-3">
           {[
             { icon: ShieldCheck, label: 'Live Token Queue' },
             { icon: Database, label: 'Digital Prescriptions' },
@@ -116,12 +106,14 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
           ].map(({ icon: Icon, label }) => (
             <div
               key={label}
-              className={`rounded-xl border px-2 py-3 flex flex-col items-center gap-1.5 text-center transition-colors ${
+              className={`rounded-2xl border p-3.5 flex flex-col items-center gap-2 text-center transition-all shadow-sm ${
                 isDark ? 'bg-zinc-900 border-zinc-800' : 'bg-white border-slate-200'
               }`}
             >
-              <Icon className="w-4 h-4 text-green-600 dark:text-green-400" />
-              <span className={`text-[10px] font-semibold leading-tight ${isDark ? 'text-zinc-300' : 'text-slate-600'}`}>
+              <div className="w-9 h-9 rounded-xl bg-green-500/10 text-green-600 dark:text-green-400 flex items-center justify-center">
+                <Icon className="w-5 h-5" />
+              </div>
+              <span className={`text-[11px] font-bold leading-tight ${isDark ? 'text-zinc-200' : 'text-slate-700'}`}>
                 {label}
               </span>
             </div>
@@ -129,31 +121,31 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
         </div>
 
         <div
-          className={`rounded-2xl p-6 sm:p-8 border shadow-lg space-y-6 transition-colors ${
+          className={`rounded-3xl p-6 sm:p-8 border shadow-xl space-y-6 transition-colors ${
             isDark
               ? 'bg-zinc-900 border-zinc-800'
               : 'bg-white border-slate-200'
           }`}
         >
           {/* Card Header */}
-          <div className="space-y-1 text-center">
-            <h1 className="text-xl font-bold tracking-tight">
-              Welcome to Dr. Doctor
+          <div className="space-y-1.5 text-center">
+            <h1 className="text-2xl font-black tracking-tight">
+              Welcome Back
             </h1>
-            <p className={`text-xs ${isDark ? 'text-zinc-400' : 'text-slate-500'}`}>
-              Enter your credentials given by your doctor
+            <p className={`text-xs font-semibold ${isDark ? 'text-zinc-400' : 'text-slate-500'}`}>
+              Enter your credentials sent by your doctor to sign in
             </p>
           </div>
 
           {errorMsg && (
             <div
-              className={`p-3 rounded-xl text-xs border ${
+              className={`p-4 rounded-2xl text-xs font-bold border flex items-center gap-3 shadow-sm ${
                 isDark
-                  ? 'bg-rose-950/40 border-rose-800/60 text-rose-300'
+                  ? 'bg-rose-950/50 border-rose-800 text-rose-300'
                   : 'bg-rose-50 border-rose-200 text-rose-700'
               }`}
             >
-              {errorMsg}
+              <span>{errorMsg}</span>
             </div>
           )}
 
@@ -161,7 +153,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label
-                className={`block text-xs font-semibold mb-1.5 ${
+                className={`block text-xs font-extrabold uppercase tracking-wider mb-2 ${
                   isDark ? 'text-zinc-300' : 'text-slate-700'
                 }`}
               >
@@ -169,7 +161,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
               </label>
               <div className="relative">
                 <Phone
-                  className={`w-4 h-4 absolute left-3.5 top-3 ${
+                  className={`w-4 h-4 absolute left-4 top-3.5 ${
                     isDark ? 'text-zinc-500' : 'text-slate-400'
                   }`}
                 />
@@ -179,7 +171,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
                   placeholder="Enter 10-digit phone number"
-                  className={`w-full pl-10 pr-3.5 py-2.5 rounded-xl text-xs font-semibold border transition-all focus:outline-none focus:ring-2 focus:ring-green-500 ${
+                  className={`w-full pl-11 pr-4 py-3.5 rounded-2xl text-sm font-bold border transition-all focus:outline-none focus:ring-2 focus:ring-green-500 shadow-sm ${
                     isDark
                       ? 'bg-black/50 border-zinc-700 text-white placeholder:text-zinc-600'
                       : 'bg-slate-50 border-slate-300 text-slate-900 placeholder:text-slate-400 focus:bg-white'
@@ -190,7 +182,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
 
             <div>
               <label
-                className={`block text-xs font-semibold mb-1.5 ${
+                className={`block text-xs font-extrabold uppercase tracking-wider mb-2 ${
                   isDark ? 'text-zinc-300' : 'text-slate-700'
                 }`}
               >
@@ -198,7 +190,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
               </label>
               <div className="relative">
                 <Lock
-                  className={`w-4 h-4 absolute left-3.5 top-3 ${
+                  className={`w-4 h-4 absolute left-4 top-3.5 ${
                     isDark ? 'text-zinc-500' : 'text-slate-400'
                   }`}
                 />
@@ -208,7 +200,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Enter your password"
-                  className={`w-full pl-10 pr-3.5 py-2.5 rounded-xl text-xs font-semibold border transition-all focus:outline-none focus:ring-2 focus:ring-green-500 ${
+                  className={`w-full pl-11 pr-4 py-3.5 rounded-2xl text-sm font-bold border transition-all focus:outline-none focus:ring-2 focus:ring-green-500 shadow-sm ${
                     isDark
                       ? 'bg-black/50 border-zinc-700 text-white placeholder:text-zinc-600'
                       : 'bg-slate-50 border-slate-300 text-slate-900 placeholder:text-slate-400 focus:bg-white'
@@ -217,26 +209,26 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
               </div>
             </div>
 
+            {/* Big Medanta Style Button */}
             <button
               type="submit"
-              className="w-full py-3 px-4 bg-green-600 hover:bg-green-700 text-white font-semibold text-xs rounded-xl shadow-xs transition-colors flex items-center justify-center gap-2 mt-2"
+              className="w-full py-4 px-6 bg-green-600 hover:bg-green-700 text-white font-black text-base rounded-2xl shadow-lg flex items-center justify-center gap-3 transition-all transform active:scale-95 mt-4"
             >
-              <span>Sign In</span>
-              <ArrowRight className="w-4 h-4" />
+              <span>Sign In Securely</span>
+              <ArrowRight className="w-5 h-5" />
             </button>
           </form>
-
         </div>
       </main>
 
       {/* Footer */}
       <footer
-        className={`relative max-w-md w-full mx-auto text-center py-3 px-4 rounded-2xl border shadow-sm transition-colors ${
+        className={`relative max-w-md w-full mx-auto text-center py-3.5 px-4 rounded-2xl border shadow-sm transition-colors ${
           isDark ? 'bg-zinc-900 border-zinc-800 text-zinc-400' : 'bg-white/90 backdrop-blur-sm border-slate-200 text-slate-500'
         }`}
       >
-        <p className="text-[11px] font-medium">
-          Dr. Doctor Clinic • Your personalized All-in-One App
+        <p className="text-xs font-bold">
+          Dr. Doctor Clinic • Secure Patient Portal
         </p>
       </footer>
     </div>
