@@ -45,6 +45,31 @@ interface ClientPatientViewProps {
 
 type ClientTab = 'home' | 'appointments' | 'records' | 'account';
 
+
+const getSmartBookingDateString = (): string => {
+  const now = new Date();
+  const currentHour = now.getHours();
+  
+  const targetDate = new Date(now);
+  
+  // Agar 6 PM (18:00) ya uske baad hai, toh agle din shifting karein
+  if (currentHour >= 18) {
+    targetDate.setDate(targetDate.getDate() + 1);
+  }
+  
+  // Agar calculated date Sunday (Day 0) hai, toh Monday (+1 day further) shift karein
+  if (targetDate.getDay() === 0) {
+    targetDate.setDate(targetDate.getDate() + 1);
+  }
+  
+  const year = targetDate.getFullYear();
+  const month = String(targetDate.getMonth() + 1).padStart(2, '0');
+  const day = String(targetDate.getDate()).padStart(2, '0');
+  
+  return `${year}-${month}-${day}`;
+};
+
+
 // ---- Small pure helpers (presentation only) ----
 const toTime = (d: string | number): number => {
   const t = new Date(d).getTime();
@@ -78,8 +103,9 @@ export const ClientPatientView: React.FC<ClientPatientViewProps> = ({
 
   const nextDayStr = getNextDayDateString();
 
-  // Booking form state
-  const [bookingDate, setBookingDate] = useState(nextDayStr);
+  // Booking form state using 6pm and Sunday smart logic
+  const initialSmartDate = getSmartBookingDateString();
+  const [bookingDate, setBookingDate] = useState(initialSmartDate);
   const [reason, setReason] = useState('');
   
  // Dynamic booking time logic (15 mins gap from last booked or current time)
@@ -739,13 +765,16 @@ export const ClientPatientView: React.FC<ClientPatientViewProps> = ({
                 <form onSubmit={handleConfirmNextDayBooking} className="mt-4 space-y-4">
                   <div>
                     <label className="block text-sm font-semibold mb-1.5">Appointment Time *</label>
+                    
                     <input
-                      type="time"
+                      type="date"
                       required
-                      value={bookingTime}
-                      onChange={(e) => setBookingTime(e.target.value)}
+                      value={bookingDate}
+                      min={initialSmartDate}
+                      onChange={(e) => setBookingDate(e.target.value)}
                       className={`w-full px-4 py-3 rounded-xl text-sm font-medium border focus:outline-none focus:ring-2 focus:ring-green-500 ${ui.input}`}
                     />
+                    
                     <p className={`text-xs mt-1.5 ${ui.faint}`}>
                       {lastAppointment ? 'Automatically set to 15 mins after the last booked patient.' : 'Set to current time as no patients are in queue.'}
                     </p>
