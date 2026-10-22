@@ -31,7 +31,7 @@ import {
 } from '../../types';
 import { downloadPrescriptionPDF } from '../../services/pdfGenerator';
 import { getNextUpcomingDose } from '../../services/notificationService';
-import { getNextDayDateString, formatReadableDate } from '../../services/dataStore';
+import { formatReadableDate } from '../../services/dataStore';
 import { useTheme } from '../../context/ThemeContext';
 import { ThemeToggle } from '../ThemeToggle';
 
@@ -48,32 +48,48 @@ interface ClientPatientViewProps {
 type ClientTab = 'home' | 'appointments' | 'records' | 'account';
 
 
-const getSmartBookingDateString = (): string => {
-  const now = new Date();
-  const currentHour = now.getHours();
-  
-  const targetDate = new Date(now);
-  
-  // Agar 6 PM (18:00) ya uske baad hai, toh agle din shifting karein
-  if (currentHour >= 18) {
-    targetDate.setDate(targetDate.getDate() + 1);
-  }
-  
-  // Agar calculated date Sunday (Day 0) hai, toh Monday (+1 day further) shift karein
-  if (targetDate.getDay() === 0) {
-    targetDate.setDate(targetDate.getDate() + 1);
-  }
-  
-  const year = targetDate.getFullYear();
-  const month = String(targetDate.getMonth() + 1).padStart(2, '0');
-  const day = String(targetDate.getDate()).padStart(2, '0');
-  
+// ---- Same-day booking helpers (9 AM - 6 PM, 15 min per pending patient) ----
+const BOOKING_OPEN_MINUTES = 9 * 60; // 9:00 AM
+const BOOKING_CLOSE_MINUTES = 18 * 60; // 6:00 PM
+const SLOT_GAP_MS = 15 * 60 * 1000; // 15 minutes per patient
+
+const getLocalDateString = (ms: number): string => {
+  const d = new Date(ms);
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
   return `${year}-${month}-${day}`;
 };
 
+const formatSlotTime = (ms: number): string =>
+  new Date(ms)
+    .toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true })
+    .toUpperCase();
 
+// slot = current time + (pending patients ahead * 15 mins). Completed patients are NOT counted.
+const getBookingStatus = (
+  nowMs: number,
+  pendingCount: number
+): { canBook: boolean; slotMs: number; reason: string } => {
+  const now = new Date(nowMs);
+  const nowMinutes = now.getHours() * 60 + now.getMinutes();
+  const slotMs = nowMs + pendingCount * SLOT_GAP_MS;
+  const slot = new Date(slotMs);
+  const slotMinutes = slot.getHours() * 60 + slot.getMinutes();
 
+  if (now.getDay() === 0) {
+    return { canBook: false, slotMs, reason: 'The clinic is closed on Sundays. Please book on Monday between 9:00 AM and 6:00 PM.' };
+  }
+  if (nowMinutes < BOOKING_OPEN_MINUTES || nowMinutes >= BOOKING_CLOSE_MINUTES) {
+    return { canBook: false, slotMs, reason: 'Booking is open only between 9:00 AM and 6:00 PM.' };
+  }
+  if (slot.toDateString() !== now.toDateString() || slotMinutes >= BOOKING_CLOSE_MINUTES) {
+    return { canBook: false, slotMs, reason: 'All slots for today are full (clinic closes at 6:00 PM). Please try again on the next working day.' };
+  }
+  return { canBook: true, slotMs, reason: '' };
+};
 
+const isPendingStatus = (status: string): boolean => status === 'waiting' || status === 'in-cabin';
 
 // ---- Small pure helpers (presentation only) ----
 const toTime = (d: string | number): number => {
@@ -104,30 +120,25 @@ export const ClientPatientView: React.FC<ClientPatientViewProps> = ({
   // Bottom navigation tab
   const [activeTab, setActiveTab] = useState<ClientTab>('home');
 
-  const nextDayStr = getNextDayDateString();
-
-  // Booking form state using 6pm and Sunday smart logic
-  const initialSmartDate = getSmartBookingDateString();
-  const [bookingDate, setBookingDate] = useState(initialSmartDate);
-  const [reason, setReason] = useState('');
-  
- // Dynamic booking time logic (15 mins gap from last booked or current time)
-  const todayAppointments = appointments
-    .filter((a) => a.date === bookingDate)
-    .sort((a, b) => (b.bookedAt || 0) - (a.bookedAt || 0));
-  
-  const lastAppointment = todayAppointments[0];
-  const calculatedDefaultTime = lastAppointment && lastAppointment.bookedAt
-    ? new Date(lastAppointment.bookedAt + 15 * 60 * 1000).toTimeString().slice(0, 5)
-    : new Date().toTimeString().slice(0, 5);
-
-  const [bookingTime, setBookingTime] = useState(calculatedDefaultTime);
-
-  // Add this useEffect so time updates dynamically when bookingDate changes
+  // Live clock so the suggested slot always follows the current time
+  const [nowMs, setNowMs] = useState<number>(() => Date.now());
   useEffect(() => {
-    setBookingTime(calculatedDefaultTime);
-  }, [bookingDate, appointments]);
-  
+    const id = setInterval(() => setNowMs(Date.now()), 15000);
+    return () => clearInterval(id);
+  }, []);
+
+  // Booking is always for TODAY (no next-day booking anymore)
+  const bookingDate = getLocalDateString(nowMs);
+  const [reason, setReason] = useState('');
+
+  // Pending patients for today (completed patients are excluded from seat & time calculation).
+  // `appointments` comes from Firebase realtime, so all of this recalculates live.
+  const pendingToday = appointments.filter(
+    (a) => a.date === bookingDate && isPendingStatus(a.status)
+  );
+  const bookingStatus = getBookingStatus(nowMs, pendingToday.length);
+  const bookingTime = formatSlotTime(bookingStatus.slotMs);
+
   const [bookingSuccessToast, setBookingSuccessToast] = useState('');
   const [bookingError, setBookingError] = useState('');
   const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
@@ -193,10 +204,9 @@ export const ClientPatientView: React.FC<ClientPatientViewProps> = ({
     : 0;
 
   // Next available token for booking date
-  const existingForBookingDate = appointments.filter((a) => a.date === bookingDate);
-  const nextAvailableSeatNumber = existingForBookingDate.length + 1;
+  // Only pending patients take a seat ahead of you; completed ones are not counted.
+  const nextAvailableSeatNumber = pendingToday.length + 1;
 
-  // Next upcoming dose across patient's prescriptions
   const allMeds = myPrescriptions.flatMap((rx) => rx.medicines);
   const nextDose = getNextUpcomingDose(allMeds);
 
@@ -215,8 +225,6 @@ export const ClientPatientView: React.FC<ClientPatientViewProps> = ({
     ...(client.age ? [{ label: 'Age', value: `${client.age} years` }] : []),
     ...(client.gender ? [{ label: 'Gender', value: String(client.gender) }] : []),
   ];
-
-  // ---- Handlers (unchanged behaviour) ----
   
  
  
@@ -322,29 +330,43 @@ const handleSharePrescription = async (rx: Prescription) => {
       return;
     }
 
-    const targetTimestamp = bookingTime 
-      ? new Date(`${bookingDate}T${bookingTime}`).getTime() 
-      : Date.now();
+    // Recalculate with fresh values at the moment of booking
+    const submitNow = Date.now();
+    const submitDate = getLocalDateString(submitNow);
+    const pendingNow = appointments.filter(
+      (a) => a.date === submitDate && isPendingStatus(a.status)
+    );
+    const submitStatus = getBookingStatus(submitNow, pendingNow.length);
+
+    if (!submitStatus.canBook) {
+      setBookingError(submitStatus.reason);
+      return;
+    }
+
+    // Keep strict first-come-first-served ordering by bookedAt
+    const lastPendingBookedAt = Math.max(0, ...pendingNow.map((a) => a.bookedAt || 0));
+    const bookedAtTs = Math.max(submitStatus.slotMs, lastPendingBookedAt + 1);
+    const seatNumber = pendingNow.length + 1;
 
     const newApt: Appointment = {
       id: `apt-${Date.now()}`,
-      tokenNumber: nextAvailableSeatNumber,
+      tokenNumber: seatNumber,
       patientId: client.id,
       patientName: client.name,
       patientPhone: client.phone,
       patientAge: client.age || 28,
       patientGender: client.gender || 'Male',
-      date: bookingDate,
-      isNextDay: bookingDate === nextDayStr,
+      date: submitDate,
+      isNextDay: false,
       reasonForVisit: reason.trim(),
-      bookedAt: Number.isNaN(targetTimestamp) ? Date.now() : targetTimestamp, // 15 mins gap or current timestamp
+      bookedAt: bookedAtTs,
       status: 'waiting',
     };
 
     onBookAppointment(newApt);
     setReason('');
     setBookingSuccessToast(
-      `Appointment booked! You are Seat #${newApt.tokenNumber} in the queue for ${formatReadableDate(bookingDate)}.`
+      `Appointment booked! You are Seat #${newApt.tokenNumber} today. Expected time: ${formatSlotTime(newApt.bookedAt)}.`
     );
   };
 
@@ -662,7 +684,9 @@ const handleSharePrescription = async (rx: Prescription) => {
                       className={`mt-4 w-full flex items-center justify-between rounded-xl border px-4 py-3.5 text-sm transition-colors ${ui.inset}`}
                     >
                       <span className={ui.muted}>
-                        Next available: {formatReadableDate(nextDayStr)}
+                        {bookingStatus.canBook
+                          ? `Next available: Today, ${bookingTime}`
+                          : 'Booking hours: 9:00 AM - 6:00 PM'}
                       </span>
                       <CalendarPlus className={`w-5 h-5 ${ui.accent}`} />
                     </button>
@@ -856,18 +880,23 @@ const handleSharePrescription = async (rx: Prescription) => {
                   <div>
                     <label className="block text-sm font-semibold mb-1.5">Appointment Time *</label>
                     
-                    <input
-                      type="date"
-                      required
-                      value={bookingDate}
-                      min={initialSmartDate}
-                      onChange={(e) => setBookingDate(e.target.value)}
-                      className={`w-full px-4 py-3 rounded-xl text-sm font-medium border focus:outline-none focus:ring-2 focus:ring-green-500 ${ui.input}`}
-                    />
-                    
+                    <div
+                      className={`w-full px-4 py-3 rounded-xl text-sm font-medium border flex items-center justify-between ${ui.input}`}
+                    >
+                      <span className="flex items-center gap-2">
+                        <Clock className={`w-4 h-4 ${ui.accent}`} />
+                        {bookingStatus.canBook ? bookingTime : '--:--'}
+                      </span>
+                      <span className={ui.faint}>Today</span>
+                    </div>
+
                     <p className={`text-xs mt-1.5 ${ui.faint}`}>
-  {lastAppointment ? `Next available time: ${calculatedDefaultTime}` : `Current default time: ${calculatedDefaultTime}`}
-</p>
+                      {!bookingStatus.canBook
+                        ? 'Booking is available only from 9:00 AM to 6:00 PM.'
+                        : pendingToday.length === 0
+                        ? 'No patients ahead - your slot is the current time.'
+                        : `${pendingToday.length} patient${pendingToday.length === 1 ? '' : 's'} ahead (15 mins each) - your slot is ${bookingTime}.`}
+                    </p>
                   </div>
 
                   <div>
@@ -896,7 +925,10 @@ const handleSharePrescription = async (rx: Prescription) => {
 
                   <button
                     type="submit"
-                    className="w-full py-3.5 px-4 bg-green-600 hover:bg-green-700 text-white font-semibold text-sm rounded-xl shadow-sm flex items-center justify-center gap-2 transition-colors"
+                    disabled={!bookingStatus.canBook}
+                    className={`w-full py-3.5 px-4 bg-green-600 hover:bg-green-700 text-white font-semibold text-sm rounded-xl shadow-sm flex items-center justify-center gap-2 transition-colors ${
+                      bookingStatus.canBook ? '' : 'opacity-50 cursor-not-allowed'
+                    }`}
                   >
                     <CalendarPlus className="w-4 h-4" />
                     <span>Confirm Booking & Get Seat #{nextAvailableSeatNumber}</span>
