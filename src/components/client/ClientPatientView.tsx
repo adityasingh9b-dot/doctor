@@ -223,20 +223,42 @@ export const ClientPatientView: React.FC<ClientPatientViewProps> = ({
  
  
 const handleSharePrescription = async (rx: Prescription) => {
-    // Clean formatted text template for fallback or text sharing
+    // Detailed text template resembling a complete official prescription PDF
+    const medicinesListText = rx.medicines.map((m, idx) => {
+      const slots = [];
+      if (m.dosageSlots?.breakfast) slots.push('Breakfast');
+      if (m.dosageSlots?.lunch) slots.push('Lunch');
+      if (m.dosageSlots?.dinner) slots.push('Dinner');
+      
+      return (
+        `[${idx + 1}] ${m.name}\n` +
+        `    • Description: ${m.description || 'N/A'}\n` +
+        `    • Timing: ${m.timing === 'before' ? 'Before food (Khali pet)' : 'After food (Khane ke baad)'}\n` +
+        `    • Slots: ${slots.length > 0 ? slots.join(', ') : 'As directed'}\n` +
+        `    • Time(s): ${m.times && m.times.length > 0 ? m.times.join(', ') : '08:00 AM'}`
+      );
+    }).join('\n\n');
+
     const shareText = 
-      `📋 *PRESCRIPTION SUMMARY*\n` +
-      `----------------------------------\n` +
-      `🏥 *${clinicConfig.name}*\n` +
-      `👨‍⚕️ Doctor: ${clinicConfig.doctorName}\n` +
-      `📅 Date: ${formatReadableDate(rx.date)}\n` +
-      `🔖 Rx ID: #${rx.id.slice(-6)}\n` +
-      `${rx.diagnosis ? `🩺 Diagnosis: ${rx.diagnosis}\n` : ''}` +
-      `----------------------------------\n` +
-      `💊 *Prescribed Medicines:*\n` +
-      rx.medicines.map((m, idx) => `  ${idx + 1}. *${m.name}* (${m.timing === 'before' ? 'Before food' : 'After food'})${m.times?.length ? ` - [${m.times.join(', ')}]` : ''}`).join('\n') +
-      `${rx.generalAdvice ? `\n\n💡 *Advice:* ${rx.generalAdvice}` : ''}\n` +
-      `----------------------------------`;
+      `========================================\n` +
+      `           OFFICIAL PRESCRIPTION        \n` +
+      `========================================\n` +
+      `Clinic: ${clinicConfig.name}\n` +
+      `Doctor: ${clinicConfig.doctorName}\n` +
+      `Cabin: ${clinicConfig.cabinName}\n` +
+      `Address: ${clinicConfig.address}\n` +
+      `----------------------------------------\n` +
+      `Prescription ID: #${rx.id}\n` +
+      `Date: ${formatReadableDate(rx.date)}\n` +
+      `Patient Name: ${client.name}${client.age ? ` (${client.age} yrs` : ''}${client.gender ? `, ${client.gender})` : client.age ? ')' : ''}\n` +
+      `----------------------------------------\n` +
+      `${rx.diagnosis ? `PROVISIONAL DIAGNOSIS:\n${rx.diagnosis}\n----------------------------------------\n` : ''}` +
+      `PRESCRIBED MEDICINES (${rx.medicines.length}):\n\n` +
+      medicinesListText +
+      `\n----------------------------------------\n` +
+      `${rx.generalAdvice ? `DOCTOR ADVICE / INSTRUCTIONS:\n${rx.generalAdvice}\n----------------------------------------\n` : ''}` +
+      `Signed & Issued by ${clinicConfig.doctorName}\n` +
+      `========================================`;
 
     try {
       // 1. Try generating and sharing PDF file first
@@ -259,7 +281,7 @@ const handleSharePrescription = async (rx: Prescription) => {
       console.log('PDF sharing skipped/failed, falling back to text share:', pdfErr);
     }
 
-    // 2. Fallback: Share formatted text directly if PDF sharing fails or isn't supported
+    // 2. Fallback: Share detailed text or copy to clipboard if PDF sharing is unavailable
     try {
       if (navigator.share) {
         await navigator.share({
@@ -268,12 +290,11 @@ const handleSharePrescription = async (rx: Prescription) => {
         });
       } else if (navigator.clipboard) {
         await navigator.clipboard.writeText(shareText);
-        alert('Prescription text details copied to clipboard!');
+        alert('Full detailed prescription text copied to clipboard!');
       } else {
         alert('Sharing is not supported on this browser.');
       }
     } catch (textErr: any) {
-      // Ignore AbortError if user simply cancelled the share dialog
       if (textErr.name !== 'AbortError') {
         console.log('Error sharing prescription text:', textErr);
       }
