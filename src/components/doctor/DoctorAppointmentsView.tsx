@@ -335,7 +335,7 @@ export const DoctorAppointmentsView: React.FC<DoctorAppointmentsViewProps> = ({
                         }`}
                       >
                         <Eye className="w-3.5 h-3.5 text-emerald-500" />
-                        <span>Issue Rx</span>
+                        <span>Issue New Rx</span>
                       </button>
                     ) : (
                       <button
