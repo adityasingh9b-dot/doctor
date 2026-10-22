@@ -107,7 +107,7 @@ export const DateInputDDMMYYYY: React.FC<DateInputDDMMYYYYProps> = ({
           onChange={handleTextChange}
           placeholder={placeholder}
           maxLength={10}
-          className={`w-full pl-3.5 pr-10 py-2.5 rounded-xl text-xs font-medium border focus:outline-none focus:ring-2 focus:ring-sky-500 tracking-wider font-mono ${
+          className={`w-full pl-3.5 pr-10 py-2.5 rounded-xl text-xs font-medium border focus:outline-none focus:ring-2 focus:ring-green-500 tracking-wider font-mono ${
             isDark
               ? 'bg-zinc-950 border-zinc-700 text-white placeholder:text-zinc-600'
               : 'bg-white border-slate-300 text-slate-900 placeholder:text-slate-400'
@@ -119,7 +119,7 @@ export const DateInputDDMMYYYY: React.FC<DateInputDDMMYYYYProps> = ({
           type="button"
           onClick={openCalendarPicker}
           disabled={disabled}
-          className={`absolute right-2.5 p-1.5 rounded-lg transition-colors text-sky-500 hover:text-sky-600 hover:bg-sky-500/10 focus:outline-none`}
+          className={`absolute right-2.5 p-1.5 rounded-lg transition-colors text-green-500 hover:text-green-600 hover:bg-green-500/10 focus:outline-none`}
           title="Pick date from calendar"
         >
           <Calendar className="w-4 h-4" />

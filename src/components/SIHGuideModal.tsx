@@ -26,7 +26,7 @@ export const SIHGuideModal: React.FC<SIHGuideModalProps> = ({ isOpen, onClose })
           }`}
         >
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-sky-500/15 text-sky-600 dark:text-sky-400 flex items-center justify-center">
+            <div className="w-8 h-8 rounded-xl bg-green-500/15 text-green-600 dark:text-green-400 flex items-center justify-center">
               <Award className="w-4 h-4" />
             </div>
             <div>
@@ -49,7 +49,7 @@ export const SIHGuideModal: React.FC<SIHGuideModalProps> = ({ isOpen, onClose })
 
         {/* Free alternatives answer to user query */}
         <div className="space-y-3">
-          <h4 className="text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 text-sky-600 dark:text-sky-400">
+          <h4 className="text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 text-green-600 dark:text-green-400">
             <Laptop className="w-4 h-4" />
             <span>Free Platforms & Tools to Build This App (Zero Cost)</span>
           </h4>
@@ -118,7 +118,7 @@ export const SIHGuideModal: React.FC<SIHGuideModalProps> = ({ isOpen, onClose })
                 isDark ? 'bg-zinc-950 border-zinc-800' : 'bg-slate-50 border-slate-200'
               }`}
             >
-              <CheckCircle className="w-4 h-4 text-sky-500 shrink-0 mt-0.5" />
+              <CheckCircle className="w-4 h-4 text-green-500 shrink-0 mt-0.5" />
               <div>
                 <strong>1. Strict FCFS Queueing (Jo Pehle Aayega, Top Par):</strong>
                 <p className={`text-[11px] mt-0.5 ${isDark ? 'text-zinc-400' : 'text-slate-500'}`}>
@@ -132,7 +132,7 @@ export const SIHGuideModal: React.FC<SIHGuideModalProps> = ({ isOpen, onClose })
                 isDark ? 'bg-zinc-950 border-zinc-800' : 'bg-slate-50 border-slate-200'
               }`}
             >
-              <CheckCircle className="w-4 h-4 text-sky-500 shrink-0 mt-0.5" />
+              <CheckCircle className="w-4 h-4 text-green-500 shrink-0 mt-0.5" />
               <div>
                 <strong>2. Realtime Prescription in Client's Phone PDF:</strong>
                 <p className={`text-[11px] mt-0.5 ${isDark ? 'text-zinc-400' : 'text-slate-500'}`}>
@@ -146,7 +146,7 @@ export const SIHGuideModal: React.FC<SIHGuideModalProps> = ({ isOpen, onClose })
                 isDark ? 'bg-zinc-950 border-zinc-800' : 'bg-slate-50 border-slate-200'
               }`}
             >
-              <CheckCircle className="w-4 h-4 text-sky-500 shrink-0 mt-0.5" />
+              <CheckCircle className="w-4 h-4 text-green-500 shrink-0 mt-0.5" />
               <div>
                 <strong>3. Scheduled Medicine Reminder Alarms:</strong>
                 <p className={`text-[11px] mt-0.5 ${isDark ? 'text-zinc-400' : 'text-slate-500'}`}>
@@ -165,7 +165,7 @@ export const SIHGuideModal: React.FC<SIHGuideModalProps> = ({ isOpen, onClose })
           <button
             type="button"
             onClick={onClose}
-            className="px-6 py-2 text-xs font-semibold text-white bg-sky-600 hover:bg-sky-700 rounded-xl transition-colors shadow-xs"
+            className="px-6 py-2 text-xs font-semibold text-white bg-green-600 hover:bg-green-700 rounded-xl transition-colors shadow-xs"
           >
             Got It, Thanks!
           </button>
