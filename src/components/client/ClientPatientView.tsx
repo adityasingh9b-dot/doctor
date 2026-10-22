@@ -1,9 +1,8 @@
 import React, { useState } from 'react';
 import {
   CalendarPlus,
-  Ticket,
+  CalendarCheck,
   FileText,
-  Bell,
   Clock,
   Download,
   CheckCircle,
@@ -11,10 +10,11 @@ import {
   Volume2,
   Stethoscope,
   Sparkles,
-  ChevronRight,
   Trash2,
   AlertTriangle,
   Users,
+  User,
+  MapPin,
 } from 'lucide-react';
 import {
   ClientUser,
@@ -23,12 +23,7 @@ import {
   ClinicConfig,
 } from '../../types';
 import { downloadPrescriptionPDF } from '../../services/pdfGenerator';
-import {
-  requestNotificationAccess,
-  getNotificationStatus,
-  sendMedicineAlarmNotification,
-  getNextUpcomingDose,
-} from '../../services/notificationService';
+import { getNextUpcomingDose } from '../../services/notificationService';
 import { getNextDayDateString, formatReadableDate } from '../../services/dataStore';
 import { useTheme } from '../../context/ThemeContext';
 import { ThemeToggle } from '../ThemeToggle';
@@ -43,6 +38,8 @@ interface ClientPatientViewProps {
   onDeleteAppointment: (id: string) => void;
 }
 
+type ClientTab = 'bookings' | 'prescriptions' | 'account';
+
 export const ClientPatientView: React.FC<ClientPatientViewProps> = ({
   client,
   appointments,
@@ -55,21 +52,17 @@ export const ClientPatientView: React.FC<ClientPatientViewProps> = ({
   const { theme } = useTheme();
   const isDark = theme === 'dark';
 
-  // Mobile navigation menu tab: 'token' | 'book' | 'prescriptions' | 'reminders'
-  const [activeTab, setActiveTab] = useState<'token' | 'book' | 'prescriptions' | 'reminders'>('token');
+  // Bottom navigation tab: 'bookings' | 'prescriptions' | 'account'
+  const [activeTab, setActiveTab] = useState<ClientTab>('bookings');
 
   const nextDayStr = getNextDayDateString();
 
-  // Next-Day Booking Form State
+  // Booking form state
   const [bookingDate, setBookingDate] = useState(nextDayStr);
   const [reason, setReason] = useState('');
   const [bookingSuccessToast, setBookingSuccessToast] = useState('');
   const [bookingError, setBookingError] = useState('');
   const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
-
-  // Notification status
-  const [notifPermission, setNotifPermission] = useState(getNotificationStatus());
-  const [testAlarmTriggered, setTestAlarmTriggered] = useState(false);
 
   // Client's appointments (filtered by patientId OR phone)
   const myAppointments = appointments.filter(
@@ -86,7 +79,7 @@ export const ClientPatientView: React.FC<ClientPatientViewProps> = ({
     (p) => p.patientId === client.id || p.patientPhone.replace(/\D/g, '') === client.phone.replace(/\D/g, '')
   );
 
-  // Calculate strict FCFS position for active appointment
+  // Strict first-come-first-served position for the active appointment
   const allAppointmentsForDate = activeAppointment
     ? appointments
         .filter((a) => a.date === activeAppointment.date)
@@ -107,46 +100,33 @@ export const ClientPatientView: React.FC<ClientPatientViewProps> = ({
   const allMeds = myPrescriptions.flatMap((rx) => rx.medicines);
   const nextDose = getNextUpcomingDose(allMeds);
 
-  const handleRequestNotifications = async () => {
-    const granted = await requestNotificationAccess();
-    setNotifPermission(granted ? 'granted' : 'denied');
-  };
+  // Account summary
+  const completedVisits = myAppointments.filter((a) => a.status === 'completed').length;
+  const initials = client.name
+    .split(' ')
+    .filter(Boolean)
+    .map((part) => part[0])
+    .slice(0, 2)
+    .join('')
+    .toUpperCase();
 
-  const handleTestMedicineNotification = () => {
-    const sampleMed = allMeds[0] || {
-      name: 'Paracetamol 650mg',
-      dosageSlots: { breakfast: true, lunch: false, dinner: true },
-      timing: 'after',
-      description: 'Take with water after food',
-    };
-
-    const slots = [];
-    if (sampleMed.dosageSlots?.breakfast) slots.push('Breakfast');
-    if (sampleMed.dosageSlots?.lunch) slots.push('Lunch');
-    if (sampleMed.dosageSlots?.dinner) slots.push('Dinner');
-    const doseText = slots.join('/') || '1 Dose';
-
-    sendMedicineAlarmNotification(
-      sampleMed.name,
-      doseText,
-      sampleMed.timing === 'before' ? 'Before food' : 'After food',
-      sampleMed.description
-    );
-
-    setTestAlarmTriggered(true);
-    setTimeout(() => setTestAlarmTriggered(false), 4000);
-  };
+  const accountDetails: { label: string; value: string }[] = [
+    { label: 'Full Name', value: client.name },
+    { label: 'Phone', value: client.phone },
+    ...(client.age ? [{ label: 'Age', value: `${client.age} years` }] : []),
+    ...(client.gender ? [{ label: 'Gender', value: String(client.gender) }] : []),
+  ];
 
   const handleConfirmNextDayBooking = (e: React.FormEvent) => {
     e.preventDefault();
     setBookingError('');
 
-    // Requirement: "A person cannot book more than 1 appointment at the same time, so add this feature too, to check already existing appointment."
+    // A patient cannot hold more than one active appointment at a time.
     if (activeAppointment) {
       setBookingError(
         `You already have an active appointment (Seat #${activeAppointment.tokenNumber} for ${formatReadableDate(
           activeAppointment.date
-        )}). A person cannot book more than 1 appointment at the same time. If you wish to book another date, please delete or cancel your existing appointment first.`
+        )}). A person cannot book more than 1 appointment at the same time. If you wish to book another date, please cancel your existing appointment first.`
       );
       return;
     }
@@ -176,7 +156,6 @@ export const ClientPatientView: React.FC<ClientPatientViewProps> = ({
     setBookingSuccessToast(
       `Appointment booked! You are Seat #${newApt.tokenNumber} in the queue for ${formatReadableDate(bookingDate)}.`
     );
-    setActiveTab('token');
   };
 
   const handleConfirmCancelAppointment = () => {
@@ -186,6 +165,12 @@ export const ClientPatientView: React.FC<ClientPatientViewProps> = ({
     setIsCancelModalOpen(false);
     setBookingSuccessToast(`Appointment (Seat #${seatNum}) was cancelled. Your seat was released and patients below have moved up.`);
   };
+
+  const navItems: { id: ClientTab; label: string; Icon: React.ElementType }[] = [
+    { id: 'bookings', label: 'My Bookings', Icon: CalendarCheck },
+    { id: 'prescriptions', label: 'My Prescriptions', Icon: FileText },
+    { id: 'account', label: 'My Account', Icon: User },
+  ];
 
   return (
     <div
@@ -262,283 +247,206 @@ export const ClientPatientView: React.FC<ClientPatientViewProps> = ({
           </div>
         )}
 
-        {/* TAB 1: MY TOKEN & QUEUE POSITION */}
-        {activeTab === 'token' && (
+        {/* TAB 1: MY BOOKINGS — active seat & queue, or the booking form when nothing is booked */}
+        {activeTab === 'bookings' && (
           <div className="space-y-4">
             {activeAppointment ? (
-              <div
-                className={`rounded-2xl p-6 border text-center space-y-4 shadow-sm ${
-                  isDark ? 'bg-zinc-900 border-zinc-800' : 'bg-white border-slate-200'
-                }`}
-              >
-                <div className="space-y-1">
-                  <span className="text-[11px] font-bold uppercase tracking-wider text-green-600 dark:text-green-400">
-                    FCFS Queued Appointment
-                  </span>
-                  <h2 className={`text-sm font-semibold ${isDark ? 'text-zinc-300' : 'text-slate-700'}`}>
-                    {formatReadableDate(activeAppointment.date)}
-                  </h2>
-                </div>
-
-                {/* Big Token Number Card */}
-                <div className="py-1">
-                  <div className="w-28 h-28 mx-auto bg-green-600 rounded-2xl flex flex-col items-center justify-center text-white shadow-sm">
-                    <span className="text-[10px] uppercase font-bold tracking-widest opacity-80">
-                      Your Seat
-                    </span>
-                    <span className="text-4xl font-black tracking-tight">
-                      #{activeAppointment.tokenNumber}
-                    </span>
-                    <span className="text-[10px] font-medium opacity-90">
-                      FCFS Verified
-                    </span>
-                  </div>
-                </div>
-
-                {/* Queue Status & Position in Booked List */}
+              <>
                 <div
-                  className={`p-3.5 rounded-xl border space-y-2 text-xs text-left ${
-                    isDark ? 'bg-zinc-950 border-zinc-800' : 'bg-slate-50 border-slate-200'
+                  className={`rounded-2xl p-6 border text-center space-y-4 shadow-sm ${
+                    isDark ? 'bg-zinc-900 border-zinc-800' : 'bg-white border-slate-200'
                   }`}
                 >
-                  <div className="flex items-center justify-between">
-                    <span className={isDark ? 'text-zinc-400' : 'text-slate-500'}>
-                      Position in Booked List:
-                    </span>
-                    <strong className="font-bold">
-                      Seat #{activeAppointment.tokenNumber} of {allAppointmentsForDate.length}
-                    </strong>
-                  </div>
-
-                  <div className="flex items-center justify-between">
-                    <span className={isDark ? 'text-zinc-400' : 'text-slate-500'}>
-                      Patients Ahead in Queue:
-                    </span>
-                    <strong className="text-green-600 dark:text-green-400 font-bold">
-                      {waitingAheadCount === 0 ? 'You are Next in Line!' : `${waitingAheadCount} ahead`}
-                    </strong>
-                  </div>
-
-                  <div className="flex items-center justify-between">
-                    <span className={isDark ? 'text-zinc-400' : 'text-slate-500'}>
-                      Consultation Status:
-                    </span>
-                    <span
-                      className={`px-2 py-0.5 rounded-full font-bold uppercase text-[10px] ${
-                        activeAppointment.status === 'in-cabin'
-                          ? 'bg-emerald-500/25 text-emerald-700 dark:text-emerald-300'
-                          : 'bg-amber-500/20 text-amber-700 dark:text-amber-300'
-                      }`}
-                    >
-                      {activeAppointment.status === 'in-cabin' ? 'NOW IN CABIN' : 'WAITING IN QUEUE'}
-                    </span>
-                  </div>
-                </div>
-
-                {/* Clinic Cabin Info */}
-                <div
-                  className={`text-left text-xs space-y-1 p-3 rounded-xl border ${
-                    isDark ? 'bg-zinc-950 border-zinc-800 text-zinc-400' : 'bg-slate-50 border-slate-200 text-slate-600'
-                  }`}
-                >
-                  <div className="flex items-center justify-between">
-                    <span className={`font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>
-                      {clinicConfig.doctorName}
-                    </span>
-                    <span className="text-[11px] text-green-600 dark:text-green-400 font-medium">
-                      {clinicConfig.cabinName}
-                    </span>
-                  </div>
-                  <p className="text-[11px]">{clinicConfig.address}</p>
-                </div>
-
-                {activeAppointment.status === 'in-cabin' && (
-                  <div className="p-3 bg-emerald-500/20 border border-emerald-500/40 rounded-xl text-xs text-emerald-700 dark:text-emerald-300 flex items-center justify-center gap-2 font-bold animate-pulse">
-                    <Volume2 className="w-4 h-4" />
-                    <span>Doctor has buzzed your token! Please enter Cabin.</span>
-                  </div>
-                )}
-
-                {/* Cancel / Delete Appointment Button as requested by user */}
-                {/* Requirement: "koi person apni appointment book krke usko baad me delete bhi kar sake aisa kro, taaki uske niche wale ab upar queue me aa jaye uske number par, jab vo appointment delete kare." */}
-                {activeAppointment.status === 'waiting' && (
-                  <div className="pt-2">
-                    <button
-                      type="button"
-                      onClick={() => setIsCancelModalOpen(true)}
-                      className={`w-full py-2.5 px-4 rounded-xl text-xs font-semibold border flex items-center justify-center gap-2 transition-colors ${
-                        isDark
-                          ? 'bg-rose-950/20 border-rose-800/40 text-rose-300 hover:bg-rose-950/40'
-                          : 'bg-rose-50 border-rose-200 text-rose-700 hover:bg-rose-100'
-                      }`}
-                    >
-                      <Trash2 className="w-4 h-4" />
-                      <span>Cancel / Delete My Appointment</span>
-                    </button>
-                    <p className={`text-[10px] mt-1 ${isDark ? 'text-zinc-500' : 'text-slate-400'}`}>
-                      Releases Seat #{activeAppointment.tokenNumber} so patients behind move up in the queue
-                    </p>
-                  </div>
-                )}
-              </div>
-            ) : (
-              <div
-                className={`rounded-2xl p-8 text-center space-y-3 border ${
-                  isDark ? 'bg-zinc-900 border-zinc-800' : 'bg-white border-slate-200'
-                }`}
-              >
-                <Ticket className="w-10 h-10 text-slate-400 mx-auto" />
-                <div>
-                  <h3 className="text-sm font-bold">No Active Seat Scheduled</h3>
-                  <p className={`text-xs max-w-xs mx-auto mt-1 ${isDark ? 'text-zinc-400' : 'text-slate-500'}`}>
-                    You don&apos;t have an active appointment scheduled right now. Click below to book your seat for the next day!
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setActiveTab('book')}
-                  className="px-5 py-2.5 bg-green-600 hover:bg-green-700 text-white text-xs font-semibold rounded-xl shadow-xs inline-flex items-center gap-2"
-                >
-                  <CalendarPlus className="w-4 h-4" />
-                  <span>Book Next Day Appointment</span>
-                </button>
-              </div>
-            )}
-
-            {/* Current Booked List for the Day (See your number in booked list) */}
-            {allAppointmentsForDate.length > 0 && (
-              <div
-                className={`rounded-2xl p-5 border space-y-3 ${
-                  isDark ? 'bg-zinc-900 border-zinc-800' : 'bg-white border-slate-200'
-                }`}
-              >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Users className="w-4 h-4 text-green-500" />
-                    <h3 className="text-xs font-bold uppercase tracking-wider">
-                      Booked List ({formatReadableDate(activeAppointment?.date || nextDayStr)})
-                    </h3>
-                  </div>
-                  <span className="text-[11px] font-mono text-green-600 dark:text-green-400 font-bold">
-                    {allAppointmentsForDate.length} Booked
-                  </span>
-                </div>
-
-                <div className="space-y-1.5 max-h-48 overflow-y-auto pr-1">
-                  {allAppointmentsForDate.map((apt) => {
-                    const isMe = apt.patientId === client.id || apt.patientPhone === client.phone;
-                    return (
-                      <div
-                        key={apt.id}
-                        className={`p-2.5 rounded-xl border flex items-center justify-between text-xs transition-colors ${
-                          isMe
-                            ? isDark
-                              ? 'bg-green-950/40 border-green-700 text-green-200 font-bold'
-                              : 'bg-green-50 border-green-300 text-green-900 font-bold'
-                            : isDark
-                            ? 'bg-zinc-950 border-zinc-800 text-zinc-300'
-                            : 'bg-slate-50 border-slate-200 text-slate-700'
-                        }`}
-                      >
-                        <div className="flex items-center gap-2">
-                          <span
-                            className={`w-6 h-6 rounded-lg flex items-center justify-center font-bold text-xs ${
-                              isMe
-                                ? 'bg-green-600 text-white'
-                                : isDark
-                                ? 'bg-zinc-800 text-zinc-300'
-                                : 'bg-slate-200 text-slate-700'
-                            }`}
-                          >
-                            #{apt.tokenNumber}
-                          </span>
-                          <span>{isMe ? `${apt.patientName} (You)` : `${apt.patientName.slice(0, 1)}*** ${apt.patientName.split(' ')[1] || ''}`}</span>
-                        </div>
-
-                        <span
-                          className={`text-[10px] px-2 py-0.5 rounded-full uppercase font-semibold ${
-                            apt.status === 'completed'
-                              ? 'bg-emerald-500/20 text-emerald-600'
-                              : 'bg-amber-500/20 text-amber-600'
-                          }`}
-                        >
-                          {apt.status === 'completed' ? 'Done' : 'Waiting'}
-                        </span>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* TAB 2: BOOK NEXT DAY APPOINTMENT */}
-        {activeTab === 'book' && (
-          <div
-            className={`rounded-2xl p-6 border space-y-4 shadow-sm ${
-              isDark ? 'bg-zinc-900 border-zinc-800' : 'bg-white border-slate-200'
-            }`}
-          >
-            <div>
-              <span className="text-[10px] font-mono px-2 py-0.5 rounded-md bg-green-500/15 text-green-600 dark:text-green-400 font-bold">
-                STRICT FCFS BOOKING
-              </span>
-              <h2 className="text-base font-bold mt-1.5">
-                Book Next-Day Appointment
-              </h2>
-              <p className={`text-xs ${isDark ? 'text-zinc-400' : 'text-slate-500'}`}>
-                Jo pehle book karega, uska number top par! Strict chronological seat allocation.
-              </p>
-            </div>
-
-            {/* Check already existing appointment rule:
-                "A person cannot book more than 1 appointment at the same time, so add this feature too, to check already existing appointment." */}
-            {activeAppointment ? (
-              <div
-                className={`p-4 rounded-xl border space-y-3 ${
-                  isDark
-                    ? 'bg-amber-950/30 border-amber-800/50 text-amber-200'
-                    : 'bg-amber-50 border-amber-200 text-amber-900'
-                }`}
-              >
-                <div className="flex items-start gap-2.5">
-                  <AlertTriangle className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
                   <div className="space-y-1">
-                    <strong className="block text-xs font-bold">
-                      Active Appointment Already Scheduled
-                    </strong>
-                    <p className="text-xs">
-                      You currently hold <strong>Seat #{activeAppointment.tokenNumber}</strong> for{' '}
-                      <strong>{formatReadableDate(activeAppointment.date)}</strong>. A patient cannot book more than 1 appointment at the same time.
-                    </p>
+                    <span className="text-[11px] font-bold uppercase tracking-wider text-green-600 dark:text-green-400">
+                      FCFS Queued Appointment
+                    </span>
+                    <h2 className={`text-sm font-semibold ${isDark ? 'text-zinc-300' : 'text-slate-700'}`}>
+                      {formatReadableDate(activeAppointment.date)}
+                    </h2>
                   </div>
-                </div>
 
-                <div className="flex flex-wrap items-center gap-2 pt-1">
-                  <button
-                    type="button"
-                    onClick={() => setActiveTab('token')}
-                    className="px-3.5 py-1.5 bg-green-600 hover:bg-green-700 text-white rounded-xl text-xs font-semibold shadow-xs"
-                  >
-                    View My Active Seat
-                  </button>
+                  {/* Big Token Number Card */}
+                  <div className="py-1">
+                    <div className="w-28 h-28 mx-auto bg-green-600 rounded-2xl flex flex-col items-center justify-center text-white shadow-sm">
+                      <span className="text-[10px] uppercase font-bold tracking-widest opacity-80">
+                        Your Seat
+                      </span>
+                      <span className="text-4xl font-black tracking-tight">
+                        #{activeAppointment.tokenNumber}
+                      </span>
+                      <span className="text-[10px] font-medium opacity-90">
+                        FCFS Verified
+                      </span>
+                    </div>
+                  </div>
 
-                  <button
-                    type="button"
-                    onClick={() => setIsCancelModalOpen(true)}
-                    className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold border transition-colors ${
-                      isDark
-                        ? 'bg-rose-950/30 border-rose-800/50 text-rose-300 hover:bg-rose-900/50'
-                        : 'bg-rose-50 border-rose-200 text-rose-700 hover:bg-rose-100'
+                  {/* Queue Status & Position in Booked List */}
+                  <div
+                    className={`p-3.5 rounded-xl border space-y-2 text-xs text-left ${
+                      isDark ? 'bg-zinc-950 border-zinc-800' : 'bg-slate-50 border-slate-200'
                     }`}
                   >
-                    Cancel Existing Appointment
-                  </button>
+                    <div className="flex items-center justify-between">
+                      <span className={isDark ? 'text-zinc-400' : 'text-slate-500'}>
+                        Position in Booked List:
+                      </span>
+                      <strong className="font-bold">
+                        Seat #{activeAppointment.tokenNumber} of {allAppointmentsForDate.length}
+                      </strong>
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <span className={isDark ? 'text-zinc-400' : 'text-slate-500'}>
+                        Patients Ahead in Queue:
+                      </span>
+                      <strong className="text-green-600 dark:text-green-400 font-bold">
+                        {waitingAheadCount === 0 ? 'You are Next in Line!' : `${waitingAheadCount} ahead`}
+                      </strong>
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <span className={isDark ? 'text-zinc-400' : 'text-slate-500'}>
+                        Consultation Status:
+                      </span>
+                      <span
+                        className={`px-2 py-0.5 rounded-full font-bold uppercase text-[10px] ${
+                          activeAppointment.status === 'in-cabin'
+                            ? 'bg-emerald-500/25 text-emerald-700 dark:text-emerald-300'
+                            : 'bg-amber-500/20 text-amber-700 dark:text-amber-300'
+                        }`}
+                      >
+                        {activeAppointment.status === 'in-cabin' ? 'NOW IN CABIN' : 'WAITING IN QUEUE'}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Clinic Cabin Info */}
+                  <div
+                    className={`text-left text-xs space-y-1 p-3 rounded-xl border ${
+                      isDark ? 'bg-zinc-950 border-zinc-800 text-zinc-400' : 'bg-slate-50 border-slate-200 text-slate-600'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className={`font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                        {clinicConfig.doctorName}
+                      </span>
+                      <span className="text-[11px] text-green-600 dark:text-green-400 font-medium">
+                        {clinicConfig.cabinName}
+                      </span>
+                    </div>
+                    <p className="text-[11px]">{clinicConfig.address}</p>
+                  </div>
+
+                  {activeAppointment.status === 'in-cabin' && (
+                    <div className="p-3 bg-emerald-500/20 border border-emerald-500/40 rounded-xl text-xs text-emerald-700 dark:text-emerald-300 flex items-center justify-center gap-2 font-bold animate-pulse">
+                      <Volume2 className="w-4 h-4" />
+                      <span>Doctor has buzzed your token! Please enter Cabin.</span>
+                    </div>
+                  )}
+
+                  {/* Cancelling releases the seat so patients behind move up the queue */}
+                  {activeAppointment.status === 'waiting' && (
+                    <div className="pt-2">
+                      <button
+                        type="button"
+                        onClick={() => setIsCancelModalOpen(true)}
+                        className={`w-full py-2.5 px-4 rounded-xl text-xs font-semibold border flex items-center justify-center gap-2 transition-colors ${
+                          isDark
+                            ? 'bg-rose-950/20 border-rose-800/40 text-rose-300 hover:bg-rose-950/40'
+                            : 'bg-rose-50 border-rose-200 text-rose-700 hover:bg-rose-100'
+                        }`}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                        <span>Cancel / Delete My Appointment</span>
+                      </button>
+                      <p className={`text-[10px] mt-1 ${isDark ? 'text-zinc-500' : 'text-slate-400'}`}>
+                        Releases Seat #{activeAppointment.tokenNumber} so patients behind move up in the queue
+                      </p>
+                    </div>
+                  )}
                 </div>
-              </div>
+
+                {/* Booked list for the day */}
+                {allAppointmentsForDate.length > 0 && (
+                  <div
+                    className={`rounded-2xl p-5 border space-y-3 ${
+                      isDark ? 'bg-zinc-900 border-zinc-800' : 'bg-white border-slate-200'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Users className="w-4 h-4 text-green-500" />
+                        <h3 className="text-xs font-bold uppercase tracking-wider">
+                          Booked List ({formatReadableDate(activeAppointment.date)})
+                        </h3>
+                      </div>
+                      <span className="text-[11px] font-mono text-green-600 dark:text-green-400 font-bold">
+                        {allAppointmentsForDate.length} Booked
+                      </span>
+                    </div>
+
+                    <div className="space-y-1.5 max-h-48 overflow-y-auto pr-1">
+                      {allAppointmentsForDate.map((apt) => {
+                        const isMe = apt.patientId === client.id || apt.patientPhone === client.phone;
+                        return (
+                          <div
+                            key={apt.id}
+                            className={`p-2.5 rounded-xl border flex items-center justify-between text-xs transition-colors ${
+                              isMe
+                                ? isDark
+                                  ? 'bg-green-950/40 border-green-700 text-green-200 font-bold'
+                                  : 'bg-green-50 border-green-300 text-green-900 font-bold'
+                                : isDark
+                                ? 'bg-zinc-950 border-zinc-800 text-zinc-300'
+                                : 'bg-slate-50 border-slate-200 text-slate-700'
+                            }`}
+                          >
+                            <div className="flex items-center gap-2">
+                              <span
+                                className={`w-6 h-6 rounded-lg flex items-center justify-center font-bold text-xs ${
+                                  isMe
+                                    ? 'bg-green-600 text-white'
+                                    : isDark
+                                    ? 'bg-zinc-800 text-zinc-300'
+                                    : 'bg-slate-200 text-slate-700'
+                                }`}
+                              >
+                                #{apt.tokenNumber}
+                              </span>
+                              <span>{isMe ? `${apt.patientName} (You)` : `${apt.patientName.slice(0, 1)}*** ${apt.patientName.split(' ')[1] || ''}`}</span>
+                            </div>
+
+                            <span
+                              className={`text-[10px] px-2 py-0.5 rounded-full uppercase font-semibold ${
+                                apt.status === 'completed'
+                                  ? 'bg-emerald-500/20 text-emerald-600'
+                                  : 'bg-amber-500/20 text-amber-600'
+                              }`}
+                            >
+                              {apt.status === 'completed' ? 'Done' : 'Waiting'}
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+              </>
             ) : (
-              <>
+              /* No active booking: show the booking form right here */
+              <div
+                className={`rounded-2xl p-6 border space-y-4 shadow-sm ${
+                  isDark ? 'bg-zinc-900 border-zinc-800' : 'bg-white border-slate-200'
+                }`}
+              >
+                <div>
+                  <h2 className="text-base font-bold">Book an Appointment</h2>
+                  <p className={`text-xs mt-0.5 ${isDark ? 'text-zinc-400' : 'text-slate-500'}`}>
+                    You have no active booking. Pick a date and tell us the reason for your visit to reserve your seat.
+                  </p>
+                </div>
+
                 {/* Seat Forecast Badge */}
                 <div
                   className={`p-3.5 rounded-xl border flex items-center justify-between ${
@@ -547,7 +455,7 @@ export const ClientPatientView: React.FC<ClientPatientViewProps> = ({
                 >
                   <div>
                     <span className={`text-[10px] uppercase font-bold block ${isDark ? 'text-zinc-400' : 'text-slate-500'}`}>
-                      Live Next Seat Availability:
+                      Next Available Seat:
                     </span>
                     <span className="text-xs sm:text-sm font-bold">
                       For {formatReadableDate(bookingDate)}
@@ -625,10 +533,10 @@ export const ClientPatientView: React.FC<ClientPatientViewProps> = ({
                   >
                     <div className="flex items-center gap-1.5 text-green-600 dark:text-green-400 font-semibold">
                       <Sparkles className="w-3.5 h-3.5" />
-                      <span>FCFS Priority Guarantee:</span>
+                      <span>First Come, First Served:</span>
                     </div>
                     <p>
-                      Your booking timestamp is registered. In Dr. Doctor&apos;s queue, who books first gets the first seat.
+                      Seats are allotted strictly in the order bookings are made. You can cancel anytime before your turn to release your seat.
                     </p>
                   </div>
 
@@ -640,20 +548,55 @@ export const ClientPatientView: React.FC<ClientPatientViewProps> = ({
                     <span>Confirm Booking & Get Seat #{nextAvailableSeatNumber}</span>
                   </button>
                 </form>
-              </>
+              </div>
             )}
           </div>
         )}
 
-        {/* TAB 3: PRESCRIPTIONS & PDF DOWNLOAD */}
+        {/* TAB 2: MY PRESCRIPTIONS & PDF DOWNLOAD */}
         {activeTab === 'prescriptions' && (
           <div className="space-y-4">
             <div>
-              <h2 className="text-base font-bold">My Doctor Prescriptions</h2>
+              <h2 className="text-base font-bold">My Prescriptions</h2>
               <p className={`text-xs ${isDark ? 'text-zinc-400' : 'text-slate-500'}`}>
                 Digital prescription with dosage schedule & official signed PDF
               </p>
             </div>
+
+            {/* Upcoming Dose Highlight Card */}
+            {nextDose && (
+              <div
+                className={`rounded-2xl p-5 border space-y-3 ${
+                  isDark ? 'bg-zinc-900 border-green-800/60' : 'bg-green-50/70 border-green-200'
+                }`}
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-bold text-green-600 dark:text-green-400 uppercase tracking-wider">
+                    Next Upcoming Dose
+                  </span>
+                  <span className="px-2 py-0.5 rounded-full bg-green-600 text-white text-xs font-mono font-bold">
+                    ⏰ {nextDose.nextTime}
+                  </span>
+                </div>
+
+                <div>
+                  <h3 className="text-sm font-bold">{nextDose.medicineName}</h3>
+                  <p className={`text-xs mt-0.5 ${isDark ? 'text-zinc-300' : 'text-slate-700'}`}>
+                    Dose: {nextDose.dosage} ({nextDose.timing})
+                  </p>
+                  {nextDose.description && (
+                    <p className={`text-[11px] italic mt-1 ${isDark ? 'text-zinc-400' : 'text-slate-500'}`}>
+                      &quot;{nextDose.description}&quot;
+                    </p>
+                  )}
+                </div>
+
+                <div className={`text-[11px] flex items-center gap-1 ${isDark ? 'text-zinc-400' : 'text-slate-500'}`}>
+                  <Clock className="w-3.5 h-3.5 text-amber-500" />
+                  <span>Scheduled in ~{Math.round(nextDose.minutesRemaining / 60)} hrs ({nextDose.minutesRemaining} mins)</span>
+                </div>
+              </div>
+            )}
 
             {myPrescriptions.length === 0 ? (
               <div
@@ -665,7 +608,7 @@ export const ClientPatientView: React.FC<ClientPatientViewProps> = ({
                 <div>
                   <h3 className="text-sm font-bold">No Prescriptions Issued Yet</h3>
                   <p className={`text-xs max-w-xs mx-auto mt-1 ${isDark ? 'text-zinc-400' : 'text-slate-500'}`}>
-                    Once Dr. Doctor prescribes your medicines, they will appear here with automatic reminder alarms and PDF downloads.
+                    Once Dr. Doctor prescribes your medicines, they will appear here with medicine reminders and PDF downloads.
                   </p>
                 </div>
               </div>
@@ -732,8 +675,8 @@ export const ClientPatientView: React.FC<ClientPatientViewProps> = ({
                           </div>
 
                           <span className="px-2 py-0.5 rounded-full bg-green-500/15 text-green-600 dark:text-green-400 font-mono text-[11px] font-bold shrink-0">
-  ⏰ {med.times && med.times.length > 0 ? med.times.join(', ') : '08:00 AM'}
-</span>
+                            ⏰ {med.times && med.times.length > 0 ? med.times.join(', ') : '08:00 AM'}
+                          </span>
                         </div>
 
                         <div className="flex flex-wrap items-center gap-2 text-[11px]">
@@ -793,122 +736,109 @@ export const ClientPatientView: React.FC<ClientPatientViewProps> = ({
           </div>
         )}
 
-        {/* TAB 4: MEDICINE ALARM REMINDERS */}
-        {activeTab === 'reminders' && (
+        {/* TAB 3: MY ACCOUNT */}
+        {activeTab === 'account' && (
           <div className="space-y-4">
             <div>
-              <h2 className="text-base font-bold">Medicine Reminder Alarms</h2>
+              <h2 className="text-base font-bold">My Account</h2>
               <p className={`text-xs ${isDark ? 'text-zinc-400' : 'text-slate-500'}`}>
-                At the time prescribed, your phone will alert you: &quot;It&apos;s medicine time!&quot;
+                Your profile and clinic details
               </p>
             </div>
 
-            {/* Notification Permission Card */}
+            {/* Profile Card */}
             <div
-              className={`rounded-2xl p-5 border space-y-3 ${
-                isDark ? 'bg-zinc-900 border-zinc-800' : 'bg-white border-slate-200 shadow-xs'
+              className={`rounded-2xl p-5 border space-y-4 shadow-sm ${
+                isDark ? 'bg-zinc-900 border-zinc-800' : 'bg-white border-slate-200'
               }`}
             >
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2.5">
-                  <div className="w-8 h-8 rounded-xl bg-amber-500/15 text-amber-600 dark:text-amber-400 flex items-center justify-center">
-                    <Bell className="w-4 h-4" />
-                  </div>
-                  <div>
-                    <h3 className="text-xs font-bold">Push Notifications</h3>
-                    <span className={`text-[10px] ${isDark ? 'text-zinc-400' : 'text-slate-500'}`}>
-                      Status: {notifPermission === 'granted' ? 'Enabled (Active)' : 'Action Required'}
-                    </span>
-                  </div>
+              <div className="flex items-center gap-3.5">
+                <div className="w-14 h-14 rounded-2xl bg-green-600 text-white flex items-center justify-center text-lg font-black shrink-0">
+                  {initials || <User className="w-6 h-6" />}
                 </div>
-
-                {notifPermission !== 'granted' ? (
-                  <button
-                    type="button"
-                    onClick={handleRequestNotifications}
-                    className="px-3.5 py-1.5 bg-green-600 hover:bg-green-700 text-white rounded-xl text-xs font-semibold shadow-xs"
-                  >
-                    Enable Alarms
-                  </button>
-                ) : (
-                  <span className="px-2.5 py-1 bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 rounded-xl text-xs font-mono font-bold flex items-center gap-1">
-                    <CheckCircle className="w-3 h-3" />
-                    <span>Active</span>
+                <div className="min-w-0">
+                  <h3 className="text-sm font-bold truncate">{client.name}</h3>
+                  <span className="inline-block mt-1 text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 font-mono font-bold">
+                    PATIENT
                   </span>
-                )}
+                </div>
               </div>
 
-              <p className={`text-[11px] ${isDark ? 'text-zinc-400' : 'text-slate-500'}`}>
-                When enabled, your device will play an audio alarm chime and show push notifications for all scheduled medicine times.
-              </p>
-            </div>
+              <div className="grid grid-cols-2 gap-2.5">
+                <div
+                  className={`p-3 rounded-xl border text-center ${
+                    isDark ? 'bg-zinc-950 border-zinc-800' : 'bg-slate-50 border-slate-200'
+                  }`}
+                >
+                  <span className="block text-lg font-black text-green-600 dark:text-green-400">
+                    {completedVisits}
+                  </span>
+                  <span className={`text-[10px] uppercase font-bold tracking-wider ${isDark ? 'text-zinc-400' : 'text-slate-500'}`}>
+                    Visits Completed
+                  </span>
+                </div>
+                <div
+                  className={`p-3 rounded-xl border text-center ${
+                    isDark ? 'bg-zinc-950 border-zinc-800' : 'bg-slate-50 border-slate-200'
+                  }`}
+                >
+                  <span className="block text-lg font-black text-green-600 dark:text-green-400">
+                    {myPrescriptions.length}
+                  </span>
+                  <span className={`text-[10px] uppercase font-bold tracking-wider ${isDark ? 'text-zinc-400' : 'text-slate-500'}`}>
+                    Prescriptions
+                  </span>
+                </div>
+              </div>
 
-            {/* Upcoming Dose Highlight Card */}
-            {nextDose && (
-              <div
-                className={`rounded-2xl p-5 border space-y-3 ${
-                  isDark ? 'bg-zinc-900 border-green-800/60' : 'bg-green-50/70 border-green-200'
+              <dl
+                className={`divide-y rounded-xl border text-xs ${
+                  isDark ? 'bg-zinc-950 border-zinc-800 divide-zinc-800' : 'bg-slate-50 border-slate-200 divide-slate-200'
                 }`}
               >
-                <div className="flex items-center justify-between">
-                  <span className="text-[10px] font-bold text-green-600 dark:text-green-400 uppercase tracking-wider">
-                    Next Upcoming Dose
-                  </span>
-                  <span className="px-2 py-0.5 rounded-full bg-green-600 text-white text-xs font-mono font-bold">
-                    ⏰ {nextDose.nextTime}
-                  </span>
-                </div>
+                {accountDetails.map((item) => (
+                  <div key={item.label} className="flex items-center justify-between gap-3 px-3.5 py-2.5">
+                    <dt className={isDark ? 'text-zinc-400' : 'text-slate-500'}>{item.label}</dt>
+                    <dd className="font-semibold text-right">{item.value}</dd>
+                  </div>
+                ))}
+              </dl>
+            </div>
 
-                <div>
-                  <h3 className="text-sm font-bold">{nextDose.medicineName}</h3>
-                  <p className={`text-xs mt-0.5 ${isDark ? 'text-zinc-300' : 'text-slate-700'}`}>
-                    Dose: {nextDose.dosage} ({nextDose.timing})
-                  </p>
-                  {nextDose.description && (
-                    <p className={`text-[11px] italic mt-1 ${isDark ? 'text-zinc-400' : 'text-slate-500'}`}>
-                      &quot;{nextDose.description}&quot;
-                    </p>
-                  )}
-                </div>
-
-                <div className={`text-[11px] flex items-center gap-1 ${isDark ? 'text-zinc-400' : 'text-slate-500'}`}>
-                  <Clock className="w-3.5 h-3.5 text-amber-500" />
-                  <span>Scheduled in ~{Math.round(nextDose.minutesRemaining / 60)} hrs ({nextDose.minutesRemaining} mins)</span>
-                </div>
-              </div>
-            )}
-
-            {/* Test Alarm Button */}
+            {/* Clinic Card */}
             <div
-              className={`rounded-2xl p-5 border space-y-3 ${
+              className={`rounded-2xl p-5 border space-y-2.5 ${
                 isDark ? 'bg-zinc-900 border-zinc-800' : 'bg-white border-slate-200 shadow-xs'
               }`}
             >
               <div className="flex items-center gap-2">
-                <Volume2 className="w-4 h-4 text-green-500" />
-                <h3 className="text-xs font-bold uppercase tracking-wider">
-                  Test Audio Alarm Chime
-                </h3>
+                <MapPin className="w-4 h-4 text-green-500" />
+                <h3 className="text-xs font-bold uppercase tracking-wider">Your Clinic</h3>
               </div>
-              <p className={`text-[11px] ${isDark ? 'text-zinc-400' : 'text-slate-500'}`}>
-                Click below to simulate the exact notification sound and alert: *&quot;⏰ It&apos;s medicine time!&quot;*
-              </p>
-
-              <button
-                type="button"
-                onClick={handleTestMedicineNotification}
-                className="w-full py-3 px-4 bg-green-600 hover:bg-green-700 text-white font-semibold text-xs rounded-xl shadow-xs flex items-center justify-center gap-2 transition-colors"
-              >
-                <Bell className="w-4 h-4" />
-                <span>Test &quot;It&apos;s Medicine Time!&quot; Alarm Now</span>
-              </button>
-
-              {testAlarmTriggered && (
-                <div className="p-3 bg-emerald-500/15 border border-emerald-500/30 rounded-xl text-xs text-emerald-700 dark:text-emerald-300 text-center font-bold animate-in fade-in">
-                  🔔 Alarm Sound Played & Push Alert Dispatched!
-                </div>
-              )}
+              <div className="text-xs space-y-1">
+                <p className="font-bold">{clinicConfig.name}</p>
+                <p className={isDark ? 'text-zinc-300' : 'text-slate-700'}>
+                  {clinicConfig.doctorName} • {clinicConfig.cabinName}
+                </p>
+                <p className={`text-[11px] ${isDark ? 'text-zinc-400' : 'text-slate-500'}`}>
+                  {clinicConfig.address}
+                </p>
+              </div>
             </div>
+
+            {/* Sign Out */}
+            <button
+              type="button"
+              onClick={onLogout}
+              className={`w-full py-3 px-4 rounded-xl border text-xs font-semibold flex items-center justify-center gap-2 transition-colors ${
+                isDark
+                  ? 'bg-rose-950/20 border-rose-800/40 text-rose-300 hover:bg-rose-950/40'
+                  : 'bg-rose-50 border-rose-200 text-rose-700 hover:bg-rose-100'
+              }`}
+            >
+              <LogOut className="w-4 h-4" />
+              <span>Sign Out</span>
+            </button>
           </div>
         )}
       </main>
@@ -920,57 +850,21 @@ export const ClientPatientView: React.FC<ClientPatientViewProps> = ({
         }`}
         style={{ paddingBottom: 'max(0.5rem, env(safe-area-inset-bottom))' }}
       >
-        <button
-          type="button"
-          onClick={() => setActiveTab('token')}
-          className={`flex-1 flex flex-col items-center gap-1 py-1.5 rounded-xl transition-all ${
-            activeTab === 'token'
-              ? 'text-green-600 dark:text-green-400 font-bold bg-green-500/10'
-              : isDark ? 'text-zinc-400' : 'text-slate-500'
-          }`}
-        >
-          <Ticket className="w-5 h-5" />
-          <span className="text-[10px]">My Seat</span>
-        </button>
-
-        <button
-          type="button"
-          onClick={() => setActiveTab('book')}
-          className={`flex-1 flex flex-col items-center gap-1 py-1.5 rounded-xl transition-all ${
-            activeTab === 'book'
-              ? 'text-green-600 dark:text-green-400 font-bold bg-green-500/10'
-              : isDark ? 'text-zinc-400' : 'text-slate-500'
-          }`}
-        >
-          <CalendarPlus className="w-5 h-5" />
-          <span className="text-[10px]">Book</span>
-        </button>
-
-        <button
-          type="button"
-          onClick={() => setActiveTab('prescriptions')}
-          className={`flex-1 flex flex-col items-center gap-1 py-1.5 rounded-xl transition-all ${
-            activeTab === 'prescriptions'
-              ? 'text-green-600 dark:text-green-400 font-bold bg-green-500/10'
-              : isDark ? 'text-zinc-400' : 'text-slate-500'
-          }`}
-        >
-          <FileText className="w-5 h-5" />
-          <span className="text-[10px]">Rx & PDF</span>
-        </button>
-
-        <button
-          type="button"
-          onClick={() => setActiveTab('reminders')}
-          className={`flex-1 flex flex-col items-center gap-1 py-1.5 rounded-xl transition-all ${
-            activeTab === 'reminders'
-              ? 'text-green-600 dark:text-green-400 font-bold bg-green-500/10'
-              : isDark ? 'text-zinc-400' : 'text-slate-500'
-          }`}
-        >
-          <Bell className="w-5 h-5" />
-          <span className="text-[10px]">Alarms</span>
-        </button>
+        {navItems.map(({ id, label, Icon }) => (
+          <button
+            key={id}
+            type="button"
+            onClick={() => setActiveTab(id)}
+            className={`flex-1 flex flex-col items-center gap-1 py-1.5 rounded-xl transition-all ${
+              activeTab === id
+                ? 'text-green-600 dark:text-green-400 font-bold bg-green-500/10'
+                : isDark ? 'text-zinc-400' : 'text-slate-500'
+            }`}
+          >
+            <Icon className="w-5 h-5" />
+            <span className="text-[10px]">{label}</span>
+          </button>
+        ))}
       </nav>
 
       {/* CANCEL APPOINTMENT CONFIRMATION MODAL */}
