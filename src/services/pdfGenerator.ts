@@ -93,7 +93,7 @@ export function generatePrescriptionPDF(rx: Prescription): jsPDF {
       rx.vitals.temperature ? `Temp: ${rx.vitals.temperature}°F` : '',
       rx.vitals.spo2 ? `SpO2: ${rx.vitals.spo2}%` : '',
       rx.vitals.weight ? `Wt: ${rx.vitals.weight} kg` : '',
-    ].filter(Boolean).join('   |   ');
+    ].filter(Boolean).join('    |    ');
 
     if (vitalsText) {
       doc.setFillColor(241, 245, 249);
@@ -162,7 +162,7 @@ export function generatePrescriptionPDF(rx: Prescription): jsPDF {
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(8);
 
-rx.medicines.forEach((med, index) => {
+  rx.medicines.forEach((med, index) => {
     const medNameLines = doc.splitTextToSize(med.name, colWidths[0] - 5);
     const medDescLines = doc.splitTextToSize(med.description || 'Take as directed', colWidths[1] - 5);
 
@@ -287,12 +287,21 @@ rx.medicines.forEach((med, index) => {
 }
 
 /**
- * Requirement: when downloading pdf, it's name should be saved as: PatientName_phonenumber.pdf
+ * Requirement: when downloading pdf, its name should be saved as: dd/mm/yyyy.pdf (e.g., 22102026.pdf)
  */
-export function downloadPrescriptionPDF(rx: Prescription) {
+export function downloadPrescriptionPDF(rx: Prescription, options?: { returnPdfInstance?: boolean }) {
   const doc = generatePrescriptionPDF(rx);
-  const cleanName = (rx.patientName || 'Patient').trim().replace(/[^a-zA-Z0-9]/g, '_');
-  const cleanPhone = (rx.patientPhone || '').trim().replace(/[^0-9]/g, '');
-  const fileName = `${cleanName}_${cleanPhone || 'rx'}.pdf`;
+  
+  if (options?.returnPdfInstance) {
+    return doc;
+  }
+
+  // Prescription date ko parse karke ddMMyyyy format banana (e.g. 22102026)
+  const rxDate = rx.date ? new Date(rx.date) : new Date();
+  const day = String(rxDate.getDate()).padStart(2, '0');
+  const month = String(rxDate.getMonth() + 1).padStart(2, '0');
+  const year = rxDate.getFullYear();
+
+  const fileName = `${day}${month}${year}.pdf`;
   doc.save(fileName);
 }
