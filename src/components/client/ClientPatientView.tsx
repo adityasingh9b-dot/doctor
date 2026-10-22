@@ -1,7 +1,5 @@
 import React, { useEffect, useState } from 'react';
 
-// hi
-
 import {
   AlertTriangle,
   CalendarCheck,
@@ -51,7 +49,6 @@ type ClientTab = 'home' | 'appointments' | 'records' | 'account';
 
 
 // ---- Same-day booking helpers (9 AM - 6 PM, 15 min per pending patient) ----
-const BOOKING_OPEN_MINUTES = 9 * 60; // 9:00 AM
 const BOOKING_CLOSE_MINUTES = 18 * 60; // 6:00 PM
 const SLOT_GAP_MS = 15 * 60 * 1000; // 15 minutes per patient
 
@@ -68,30 +65,70 @@ const formatSlotTime = (ms: number): string =>
     .toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true })
     .toUpperCase();
 
-// slot = current time + (pending patients ahead * 15 mins). Completed patients are NOT counted.
-const getBookingStatus = (
-  nowMs: number,
-  pendingCount: number
-): { canBook: boolean; slotMs: number; reason: string } => {
-  const now = new Date(nowMs);
-  const nowMinutes = now.getHours() * 60 + now.getMinutes();
-  const slotMs = nowMs + pendingCount * SLOT_GAP_MS;
-  const slot = new Date(slotMs);
-  const slotMinutes = slot.getHours() * 60 + slot.getMinutes();
+const isPendingStatus = (status: string): boolean => status === 'waiting' || status === 'in-cabin';
 
-  if (now.getDay() === 0) {
-    return { canBook: false, slotMs, reason: 'The clinic is closed on Sundays. Please book on Monday between 9:00 AM and 6:00 PM.' };
-  }
-  if (nowMinutes < BOOKING_OPEN_MINUTES || nowMinutes >= BOOKING_CLOSE_MINUTES) {
-    return { canBook: false, slotMs, reason: 'Booking is open only between 9:00 AM and 6:00 PM.' };
-  }
-  if (slot.toDateString() !== now.toDateString() || slotMinutes >= BOOKING_CLOSE_MINUTES) {
-    return { canBook: false, slotMs, reason: 'All slots for today are full (clinic closes at 6:00 PM). Please try again on the next working day.' };
-  }
-  return { canBook: true, slotMs, reason: '' };
+const countPendingForDate = (list: Appointment[], date: string): number =>
+  list.filter((a) => a.date === date && isPendingStatus(a.status)).length;
+
+// Clinic is closed on Sundays - move to the next working day (Mon-Sat)
+const nextWorkingDay = (d: Date): Date => {
+  const next = new Date(d.getFullYear(), d.getMonth(), d.getDate() + 1, 0, 0, 0, 0);
+  if (next.getDay() === 0) next.setDate(next.getDate() + 1);
+  return next;
 };
 
-const isPendingStatus = (status: string): boolean => status === 'waiting' || status === 'in-cabin';
+interface BookingSlot {
+  date: string; // YYYY-MM-DD of the day the appointment will be booked for
+  slotMs: number; // expected appointment time
+  isToday: boolean;
+  pendingCount: number; // pending patients ahead on that date (completed ones are NOT counted)
+}
+
+// Slot = start time + (pending patients ahead * 15 mins), where
+//  - start = current time if the clinic is open right now (Mon-Sat, 9 AM - 6 PM)
+//  - otherwise start = 9:00 AM of the next working day (Sundays skipped)
+// If a day is completely full (slot reaches 6 PM) the booking rolls over to the next working day.
+const getBookingSlot = (nowMs: number, list: Appointment[]): BookingSlot => {
+  const now = new Date(nowMs);
+  const todayStr = getLocalDateString(nowMs);
+  const nowMinutes = now.getHours() * 60 + now.getMinutes();
+
+  let day = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0);
+  let startMs: number;
+
+  if (day.getDay() !== 0 && nowMinutes < BOOKING_CLOSE_MINUTES) {
+    // Working day, clinic not closed yet: current time (or 9 AM if it is earlier than that)
+    startMs = Math.max(
+      nowMs,
+      new Date(day.getFullYear(), day.getMonth(), day.getDate(), 9, 0, 0, 0).getTime()
+    );
+  } else {
+    // Sunday or after 6 PM: next working day, 9 AM
+    day = nextWorkingDay(day);
+    startMs = new Date(day.getFullYear(), day.getMonth(), day.getDate(), 9, 0, 0, 0).getTime();
+  }
+
+  for (let i = 0; i < 60; i++) {
+    const dateStr = getLocalDateString(day.getTime());
+    const pendingCount = countPendingForDate(list, dateStr);
+    const slotMs = startMs + pendingCount * SLOT_GAP_MS;
+    const closeMs = new Date(
+      day.getFullYear(), day.getMonth(), day.getDate(), 0, BOOKING_CLOSE_MINUTES, 0, 0
+    ).getTime();
+
+    if (slotMs < closeMs) {
+      return { date: dateStr, slotMs, isToday: dateStr === todayStr, pendingCount };
+    }
+
+    // Day is full -> try the next working day from 9 AM
+    day = nextWorkingDay(day);
+    startMs = new Date(day.getFullYear(), day.getMonth(), day.getDate(), 9, 0, 0, 0).getTime();
+  }
+
+  // Practically unreachable fallback
+  const fallbackDate = getLocalDateString(startMs);
+  return { date: fallbackDate, slotMs: startMs, isToday: fallbackDate === todayStr, pendingCount: 0 };
+};
 
 // ---- Small pure helpers (presentation only) ----
 const toTime = (d: string | number): number => {
@@ -129,17 +166,17 @@ export const ClientPatientView: React.FC<ClientPatientViewProps> = ({
     return () => clearInterval(id);
   }, []);
 
-  // Booking is always for TODAY (no next-day booking anymore)
-  const bookingDate = getLocalDateString(nowMs);
   const [reason, setReason] = useState('');
 
-  // Pending patients for today (completed patients are excluded from seat & time calculation).
-  // `appointments` comes from Firebase realtime, so all of this recalculates live.
-  const pendingToday = appointments.filter(
-    (a) => a.date === bookingDate && isPendingStatus(a.status)
-  );
-  const bookingStatus = getBookingStatus(nowMs, pendingToday.length);
-  const bookingTime = formatSlotTime(bookingStatus.slotMs);
+  // Booking slot is derived live from Firebase `appointments` + the current clock:
+  //  - clinic open (Mon-Sat, 9 AM - 6 PM): today, current time + (pending patients * 15 mins)
+  //  - after 6 PM / Sunday / day full: next working day from 9 AM (Sundays skipped)
+  // Completed patients are never counted.
+  const bookingSlot = getBookingSlot(nowMs, appointments);
+  const bookingDate = bookingSlot.date;
+  const pendingForBooking = bookingSlot.pendingCount;
+  const bookingTime = formatSlotTime(bookingSlot.slotMs);
+  const bookingDayLabel = bookingSlot.isToday ? 'Today' : formatReadableDate(bookingDate);
 
   const [bookingSuccessToast, setBookingSuccessToast] = useState('');
   const [bookingError, setBookingError] = useState('');
@@ -207,8 +244,9 @@ export const ClientPatientView: React.FC<ClientPatientViewProps> = ({
 
   // Next available token for booking date
   // Only pending patients take a seat ahead of you; completed ones are not counted.
-  const nextAvailableSeatNumber = pendingToday.length + 1;
+  const nextAvailableSeatNumber = pendingForBooking + 1;
 
+  // Next upcoming dose across patient's prescriptions
   const allMeds = myPrescriptions.flatMap((rx) => rx.medicines);
   const nextDose = getNextUpcomingDose(allMeds);
 
@@ -227,6 +265,8 @@ export const ClientPatientView: React.FC<ClientPatientViewProps> = ({
     ...(client.age ? [{ label: 'Age', value: `${client.age} years` }] : []),
     ...(client.gender ? [{ label: 'Gender', value: String(client.gender) }] : []),
   ];
+
+  // ---- Handlers (unchanged behaviour) ----
   
  
  
@@ -334,21 +374,17 @@ const handleSharePrescription = async (rx: Prescription) => {
 
     // Recalculate with fresh values at the moment of booking
     const submitNow = Date.now();
-    const submitDate = getLocalDateString(submitNow);
-    const pendingNow = appointments.filter(
-      (a) => a.date === submitDate && isPendingStatus(a.status)
+    const submitSlot = getBookingSlot(submitNow, appointments);
+
+    // Keep strict first-come-first-served ordering by bookedAt (pending patients of that date only)
+    const lastPendingBookedAt = Math.max(
+      0,
+      ...appointments
+        .filter((a) => a.date === submitSlot.date && isPendingStatus(a.status))
+        .map((a) => a.bookedAt || 0)
     );
-    const submitStatus = getBookingStatus(submitNow, pendingNow.length);
-
-    if (!submitStatus.canBook) {
-      setBookingError(submitStatus.reason);
-      return;
-    }
-
-    // Keep strict first-come-first-served ordering by bookedAt
-    const lastPendingBookedAt = Math.max(0, ...pendingNow.map((a) => a.bookedAt || 0));
-    const bookedAtTs = Math.max(submitStatus.slotMs, lastPendingBookedAt + 1);
-    const seatNumber = pendingNow.length + 1;
+    const bookedAtTs = Math.max(submitSlot.slotMs, lastPendingBookedAt + 1);
+    const seatNumber = submitSlot.pendingCount + 1;
 
     const newApt: Appointment = {
       id: `apt-${Date.now()}`,
@@ -358,8 +394,8 @@ const handleSharePrescription = async (rx: Prescription) => {
       patientPhone: client.phone,
       patientAge: client.age || 28,
       patientGender: client.gender || 'Male',
-      date: submitDate,
-      isNextDay: false,
+      date: submitSlot.date,
+      isNextDay: !submitSlot.isToday,
       reasonForVisit: reason.trim(),
       bookedAt: bookedAtTs,
       status: 'waiting',
@@ -368,7 +404,7 @@ const handleSharePrescription = async (rx: Prescription) => {
     onBookAppointment(newApt);
     setReason('');
     setBookingSuccessToast(
-      `Appointment booked! You are Seat #${newApt.tokenNumber} today. Expected time: ${formatSlotTime(newApt.bookedAt)}.`
+      `Appointment booked! You are Seat #${newApt.tokenNumber} for ${submitSlot.isToday ? 'today' : formatReadableDate(newApt.date)}. Expected time: ${formatSlotTime(newApt.bookedAt)}.`
     );
   };
 
@@ -686,9 +722,7 @@ const handleSharePrescription = async (rx: Prescription) => {
                       className={`mt-4 w-full flex items-center justify-between rounded-xl border px-4 py-3.5 text-sm transition-colors ${ui.inset}`}
                     >
                       <span className={ui.muted}>
-                        {bookingStatus.canBook
-                          ? `Next available: Today, ${bookingTime}`
-                          : 'Booking hours: 9:00 AM - 6:00 PM'}
+                        Next available: {bookingDayLabel}, {bookingTime}
                       </span>
                       <CalendarPlus className={`w-5 h-5 ${ui.accent}`} />
                     </button>
@@ -887,17 +921,18 @@ const handleSharePrescription = async (rx: Prescription) => {
                     >
                       <span className="flex items-center gap-2">
                         <Clock className={`w-4 h-4 ${ui.accent}`} />
-                        {bookingStatus.canBook ? bookingTime : '--:--'}
+                        {bookingTime}
                       </span>
-                      <span className={ui.faint}>Today</span>
+                      <span className={ui.faint}>{bookingDayLabel}</span>
                     </div>
 
                     <p className={`text-xs mt-1.5 ${ui.faint}`}>
-                      {!bookingStatus.canBook
-                        ? 'Booking is available only from 9:00 AM to 6:00 PM.'
-                        : pendingToday.length === 0
-                        ? 'No patients ahead - your slot is the current time.'
-                        : `${pendingToday.length} patient${pendingToday.length === 1 ? '' : 's'} ahead (15 mins each) - your slot is ${bookingTime}.`}
+                      {!bookingSlot.isToday && 'Clinic booking hours are over for today (9:00 AM - 6:00 PM), so your appointment is for the next working day. '}
+                      {pendingForBooking === 0
+                        ? bookingSlot.isToday
+                          ? 'No patients ahead - your slot is the current time.'
+                          : 'No patients ahead - your slot is the first slot of the day.'
+                        : `${pendingForBooking} patient${pendingForBooking === 1 ? '' : 's'} ahead (15 mins each) - your slot is ${bookingTime}.`}
                     </p>
                   </div>
 
@@ -927,10 +962,7 @@ const handleSharePrescription = async (rx: Prescription) => {
 
                   <button
                     type="submit"
-                    disabled={!bookingStatus.canBook}
-                    className={`w-full py-3.5 px-4 bg-green-600 hover:bg-green-700 text-white font-semibold text-sm rounded-xl shadow-sm flex items-center justify-center gap-2 transition-colors ${
-                      bookingStatus.canBook ? '' : 'opacity-50 cursor-not-allowed'
-                    }`}
+                    className="w-full py-3.5 px-4 bg-green-600 hover:bg-green-700 text-white font-semibold text-sm rounded-xl shadow-sm flex items-center justify-center gap-2 transition-colors"
                   >
                     <CalendarPlus className="w-4 h-4" />
                     <span>Confirm Booking & Get Seat #{nextAvailableSeatNumber}</span>
