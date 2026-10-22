@@ -110,18 +110,26 @@ export const ClientPatientView: React.FC<ClientPatientViewProps> = ({
   const initialSmartDate = getSmartBookingDateString();
   const [bookingDate, setBookingDate] = useState(initialSmartDate);
   const [reason, setReason] = useState('');
-  
- // Dynamic booking time logic (15 mins gap from last booked or current time)
-  const todayAppointments = appointments
-    .filter((a) => a.date === bookingDate)
-    .sort((a, b) => (b.bookedAt || 0) - (a.bookedAt || 0));
-  
-  const lastAppointment = todayAppointments[0];
-  const calculatedDefaultTime = lastAppointment && lastAppointment.bookedAt
-    ? new Date(lastAppointment.bookedAt + 15 * 60 * 1000).toTimeString().slice(0, 5)
-    : new Date().toTimeString().slice(0, 5);
 
-  const [bookingTime, setBookingTime] = useState(calculatedDefaultTime);
+
+// Active / waiting appointments count is date ke liye
+const activeTodayAppointments = appointments.filter(
+  (a) => a.date === bookingDate && a.status !== 'completed'
+);
+
+// Real-time calculated default time: agar koi active patient nahi hai toh current time, warna (active count * 15 mins) + current time
+const now = new Date();
+const calculatedDefaultTime = activeTodayAppointments.length === 0
+  ? now.toTimeString().slice(0, 5)
+  : new Date(now.getTime() + activeTodayAppointments.length * 15 * 60 * 1000).toTimeString().slice(0, 5);
+
+// Booking time state jo user select/change karega
+const [bookingTime, setBookingTime] = useState(calculatedDefaultTime);
+
+// Jaise hi appointments ya bookingDate badle, bookingTime ko automatically update kar do
+useEffect(() => {
+  setBookingTime(calculatedDefaultTime);
+}, [bookingDate, appointments]);
 
   // Add this useEffect so time updates dynamically when bookingDate changes
   useEffect(() => {
@@ -192,9 +200,11 @@ export const ClientPatientView: React.FC<ClientPatientViewProps> = ({
       ).length
     : 0;
 
-  // Next available token for booking date
-  const existingForBookingDate = appointments.filter((a) => a.date === bookingDate);
-  const nextAvailableSeatNumber = existingForBookingDate.length + 1;
+
+const activeOrWaitingForBookingDate = appointments.filter(
+  (a) => a.date === bookingDate && a.status !== 'completed'
+);
+const nextAvailableSeatNumber = activeOrWaitingForBookingDate.length + 1;
 
   // Next upcoming dose across patient's prescriptions
   const allMeds = myPrescriptions.flatMap((rx) => rx.medicines);
