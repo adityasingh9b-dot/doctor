@@ -81,6 +81,23 @@ export const ClientPatientView: React.FC<ClientPatientViewProps> = ({
   // Booking form state
   const [bookingDate, setBookingDate] = useState(nextDayStr);
   const [reason, setReason] = useState('');
+  
+ // Dynamic booking time logic (15 mins gap from last booked or current time)
+  const todayAppointments = appointments
+    .filter((a) => a.date === bookingDate)
+    .sort((a, b) => (b.bookedAt || 0) - (a.bookedAt || 0));
+  
+  const lastAppointment = todayAppointments[0];
+  const calculatedDefaultTime = lastAppointment && lastAppointment.bookedAt
+    ? new Date(lastAppointment.bookedAt + 15 * 60 * 1000).toTimeString().slice(0, 5)
+    : new Date().toTimeString().slice(0, 5);
+
+  const [bookingTime, setBookingTime] = useState(calculatedDefaultTime);
+  
+  
+  
+  
+  
   const [bookingSuccessToast, setBookingSuccessToast] = useState('');
   const [bookingError, setBookingError] = useState('');
   const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
@@ -189,6 +206,10 @@ export const ClientPatientView: React.FC<ClientPatientViewProps> = ({
       return;
     }
 
+    const targetTimestamp = bookingTime 
+      ? new Date(`${bookingDate}T${bookingTime}`).getTime() 
+      : Date.now();
+
     const newApt: Appointment = {
       id: `apt-${Date.now()}`,
       tokenNumber: nextAvailableSeatNumber,
@@ -200,7 +221,7 @@ export const ClientPatientView: React.FC<ClientPatientViewProps> = ({
       date: bookingDate,
       isNextDay: bookingDate === nextDayStr,
       reasonForVisit: reason.trim(),
-      bookedAt: Date.now(), // Strict FCFS timestamp
+      bookedAt: Number.isNaN(targetTimestamp) ? Date.now() : targetTimestamp, // 15 mins gap or current timestamp
       status: 'waiting',
     };
 
@@ -717,17 +738,16 @@ export const ClientPatientView: React.FC<ClientPatientViewProps> = ({
 
                 <form onSubmit={handleConfirmNextDayBooking} className="mt-4 space-y-4">
                   <div>
-                    <label className="block text-sm font-semibold mb-1.5">Appointment Date *</label>
+                    <label className="block text-sm font-semibold mb-1.5">Appointment Time *</label>
                     <input
-                      type="date"
+                      type="time"
                       required
-                      value={bookingDate}
-                      min={nextDayStr}
-                      onChange={(e) => setBookingDate(e.target.value)}
+                      value={bookingTime}
+                      onChange={(e) => setBookingTime(e.target.value)}
                       className={`w-full px-4 py-3 rounded-xl text-sm font-medium border focus:outline-none focus:ring-2 focus:ring-green-500 ${ui.input}`}
                     />
                     <p className={`text-xs mt-1.5 ${ui.faint}`}>
-                      Pre-selected to tomorrow ({formatReadableDate(nextDayStr)})
+                      {lastAppointment ? 'Automatically set to 15 mins after the last booked patient.' : 'Set to current time as no patients are in queue.'}
                     </p>
                   </div>
 
