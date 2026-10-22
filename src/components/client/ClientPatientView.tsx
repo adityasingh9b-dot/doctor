@@ -12,7 +12,6 @@ import {
   FileText,
   FolderOpen,
   Home,
-  LogOut,
   MapPin,
   Pill,
   Share2, // <-- Yeh add karein
